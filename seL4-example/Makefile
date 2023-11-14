@@ -118,11 +118,13 @@ ${TARGET_DIR}/ASMFunctions.txt: ${TARGET_DIR}/kernel.elf.txt ${TARGET_DIR}/kerne
 	cd ${TARGET_DIR} && PATH=${H4PATH} ${DECOMP_SCRIPT} --fast ./kernel --ignore=${IGNORES_${L4V_CONFIG}}
 	mv ${TARGET_DIR}/kernel_mc_graph.txt ${TARGET_DIR}/ASMFunctions.txt
 
-${TARGET_DIR}/CFunctions.txt: ${L4V_KERNEL_BUILD_PATH}/kernel_all.c_pp ${L4V_REPO_PATH}/tools/asmrefine/*.thy
-	@mkdir -p ${TARGET_DIR}
+${L4V_REPO_PATH}/proof/asmrefine/export/${L4V_ARCH}/CFunDump.txt: ${L4V_KERNEL_BUILD_PATH}/kernel_all.c_pp ${L4V_REPO_PATH}/tools/asmrefine/*.thy
 	MAKEFILES= make -C ${L4V_REPO_PATH}/proof/ SimplExport
+
+${TARGET_DIR}/CFunctions.txt: ${L4V_REPO_PATH}/proof/asmrefine/export/${L4V_ARCH}/CFunDump.txt
+	@mkdir -p ${TARGET_DIR}
 	# FIXME: the following path should really depend on L4V_FEATURES.
-	cp ${L4V_REPO_PATH}/proof/asmrefine/export/${L4V_ARCH}/CFunDump.txt $@
+	cp $< $@
 
 ${TARGET_DIR}/target.py: target.py
 	@mkdir -p ${TARGET_DIR}
@@ -152,6 +154,9 @@ ${TARGET_DIR}/report.txt: ${TARGET_DIR}/StackBounds.txt ${GRAPH_REFINE_INPUTS}
 ${TARGET_DIR}/coverage.txt: ${TARGET_DIR}/StackBounds.txt ${GRAPH_REFINE_INPUTS}
 	${GRAPH_REFINE} ${TARGET_DIR} trace-to:$@.partial coverage
 	mv $@.partial $@
+
+.PHONY: graph-refine-inputs
+graph-refine-inputs: $(filter-out ${GREF_ROOT}/%.py,${GRAPH_REFINE_INPUTS})
 
 report: ${TARGET_DIR}/report.txt
 coverage: ${TARGET_DIR}/coverage.txt
