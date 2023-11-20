@@ -1243,7 +1243,10 @@ class Solver:
 			return None
 
 	def wait_parallel_solver (self):
+		i = 0
 		while True:
+			print >> sys.stderr, i
+			i += 1
 			assert self.parallel_solvers
 			try:
 				res = self.wait_parallel_solver_step ()
@@ -1278,6 +1281,7 @@ class Solver:
 		"""test a series of keyed hypotheses [(k1, h1), (k2, h2) ..etc]
 		either returns (True, -) all hypotheses true
 		or (False, ki) i-th hypothesis unprovable"""
+		print >> sys.stderr, 'parallel_check_hyps', hyps, model
 		hyps = [(k, hyp) for (k, hyp) in hyps
 			if not self.test_hyp (hyp, env, force_solv = 'Fast',
 				catch = True, hyp_name = "('hyp', %s)" % k)]
