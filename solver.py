@@ -810,10 +810,14 @@ class Solver:
 		msg = msg.format (** word32_smt_convs)
 		try:
 			self.write (msg)
-			response = self.online_solver.stdout.readline().strip()
+			line = self.online_solver.stdout.readline()
+			response = line.strip()
 		except IOError, e:
 			raise ConversationProblem (msg, 'IOError')
 		if response != 'success':
+			trace('XXX line: %s' % (repr(line)))
+			trace('YYY poll: %s' % (repr(self.online_solver.poll())))
+			assert self.online_solver.poll() != -9
 			raise ConversationProblem (msg, response)
 
 	def solver_loop (self, attempt):
@@ -1266,6 +1270,7 @@ class Solver:
 			del self.parallel_solvers[k]
 		procs = [proc for (proc, _) in solvs]
 		outputs = [output for (_, output) in solvs]
+		trace ("ZZZ killing")
 		for proc in procs:
 			os.killpg (proc.pid, signal.SIGTERM)
 		for output in outputs:
