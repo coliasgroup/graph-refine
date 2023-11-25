@@ -768,7 +768,8 @@ class Solver:
 		devnull = open (os.devnull, 'w')
 		self.online_solver = subprocess.Popen (solver.args,
 			stdin = subprocess.PIPE, stdout = subprocess.PIPE,
-			stderr = devnull, preexec_fn = preexec (solver.timeout))
+			# stderr = devnull,
+			preexec_fn = preexec (solver.timeout))
 		devnull.close ()
 
 		for msg in self.preamble (solver):
@@ -816,7 +817,7 @@ class Solver:
 			raise ConversationProblem (msg, 'IOError')
 		if response != 'success':
 			trace('XXX line: %s' % (repr(line)))
-			trace('YYY poll: %s' % (repr(self.online_solver.poll())))
+			trace('XXX poll: %s' % (repr(self.online_solver.poll())))
 			assert self.online_solver.poll() != -9
 			raise ConversationProblem (msg, response)
 
@@ -1270,12 +1271,13 @@ class Solver:
 			del self.parallel_solvers[k]
 		procs = [proc for (proc, _) in solvs]
 		outputs = [output for (_, output) in solvs]
-		trace ("ZZZ killing")
 		for proc in procs:
+			trace ("XXX sigterm %d" % proc.pid)
 			os.killpg (proc.pid, signal.SIGTERM)
 		for output in outputs:
 			output.close ()
 		for proc in procs:
+			trace ("XXX sigkill %d" % proc.pid)
 			os.killpg (proc.pid, signal.SIGKILL)
 			proc.wait ()
 
