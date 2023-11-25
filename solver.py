@@ -83,9 +83,9 @@ def parse_solver (bits):
 	args = bits[2].split ()
 	assert os.path.exists (args[0]), (args[0], bits)
 	if not fast:
-		timeout = 6000
+		timeout = 60000
 	else:
-		timeout = 30
+		timeout = 3000
 	return SolverImpl (name, fast, args, timeout)
 
 def find_solverlist_file ():
@@ -1333,7 +1333,7 @@ class Solver:
 		(res, k) = self.parallel_check_hyps (hyps, env, model)
 		return (res == 'unsat', k, res)
 
-	def slow_solver_multisat (self, hyps, model = None, timeout = 300):
+	def slow_solver_multisat (self, hyps, model = None, timeout = 30000):
 		trace ('multisat check.')
 		start = time.time ()
 
