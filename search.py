@@ -1015,7 +1015,7 @@ def setup_split_search (rep, head, restrs, hyps,
 	if node_restrs == None:
 		node_restrs = set (p.nodes)
 	if unfold_limit == None:
-		unfold_limit = max ([start + (2 * step) + 1
+		unfold_limit = max ([start + (2 * step) + 3
 			for (start, step) in i_opts + j_opts])
 
 	trace ('Split search at %d, unfold limit %d.' % (head, unfold_limit))
