@@ -909,7 +909,11 @@ def check_proof_report_rec (p, restrs, hyps, proof, step_num, ctxt, inducts,
 def check_proof_report (p, proof, do_check = True):
 	res = check_proof_report_rec (p, (), init_point_hyps (p), proof,
 		1, '', (0, {}), do_check = do_check)
-	return bool (res)
+	res = bool (res)
+	if res and save_checked_proofs[0]:
+		save = save_checked_proofs[0]
+		save (p, proof)
+	return res
 
 def save_proofs_to_file (fname, mode = 'w'):
 	assert mode in ['w', 'a']
