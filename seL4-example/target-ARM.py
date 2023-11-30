@@ -14,7 +14,7 @@ import objdump
 import logic
 import re
 
-syntax.set_arch('rv64')
+syntax.set_arch('armv7')
 f = open ('%s/kernel.elf.symtab' % target_dir)
 objdump.install_syms (f)
 f.close ()
