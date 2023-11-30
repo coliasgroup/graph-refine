@@ -327,6 +327,10 @@ def main (args):
 				prev_fs = [f for pair in prev_proofs
 					for f in pair.funs.values ()]
 				excludes.update (prev_fs)
+			elif arg.startswith ('use-proofs-of:'):
+				(_, fname) = arg.split(':', 1)
+				proofs = check.load_proofs_from_file(fname)
+				printout("xx %s" % repr(proofs))
 			elif excluding:
 				excludes.add (arg)
 			elif arg.startswith ('deps:'):
