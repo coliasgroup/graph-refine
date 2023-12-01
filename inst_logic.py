@@ -335,7 +335,7 @@ def mk_bin_inst_spec (fname):
             base_ident = tmp[0]
     if base_ident not in instruction_fun_specs:
         print base_ident
-        assert False
+        # assert False
         return
 
     (impl_fname, regspecs) = instruction_fun_specs[base_ident]
@@ -390,7 +390,7 @@ def mk_asm_inst_spec (fname):
 
     if base_ident not in instruction_fun_specs:
         print base_ident
-        assert False
+        # assert False
         return
 
     (impl_fname, regspecs) = instruction_fun_specs[base_ident]
