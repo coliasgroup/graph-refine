@@ -77,10 +77,10 @@ def toplevel_check(pair, check_loops=True, report=False, count=None,
                 result = check.check_proof_report(p, proof)
             else:
                 result = check.check_proof(p, proof)
-                if result:
-                    printout('Refinement proven.')
-                else:
-                    printout('Refinement NOT proven.')
+            if result:
+                printout('Refinement proven.')
+            else:
+                printout('Refinement NOT proven.')
         except solver.SolverFailure, e:
             printout('Solver timeout/failure in proof check.')
             result = 'CheckSolverFailure'
