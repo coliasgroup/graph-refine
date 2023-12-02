@@ -330,7 +330,17 @@ def main (args):
 			elif arg.startswith ('use-proofs-of:'):
 				(_, fname) = arg.split(':', 1)
 				proofs = check.load_proofs_from_file(fname)
-				printout("xx %s" % repr(proofs))
+				for k in proofs.keys():
+					[pair] = proofs[k]
+					problem, proof = pair
+					printout('Checking proof of %s', k)
+					check.check_proof(problem, proof)
+
+					# printout('key')
+					# printout(repr(k))
+					# printout('value')
+					# printout(repr(proofs[k]))
+
 			elif excluding:
 				excludes.add (arg)
 			elif arg.startswith ('deps:'):
