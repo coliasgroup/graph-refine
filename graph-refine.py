@@ -333,7 +333,7 @@ def main (args):
 				for k in proofs.keys():
 					[pair] = proofs[k]
 					problem, proof = pair
-					printout('Checking proof of %s', k)
+					printout('Checking proof of %s' % k)
 					check.check_proof(problem, proof)
 
 					# printout('key')
