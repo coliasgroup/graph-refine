@@ -332,17 +332,21 @@ def main (args):
 				proofs = check.load_proofs_from_file(fname)
 				for k in proofs.keys():
 					printout('Checking proof of %s' % k)
-					[pair] = proofs[k]
-					problem, proof = pair
+					[entry] = proofs[k]
+					problem, proof = entry
+					pairing = problem.pairing
 
 					printout('key')
 					printout(repr(k))
 					printout('problem')
 					printout(repr(problem))
-					printout('proof (%s)' % repr(type(proof)))
+					printout('pairing')
+					printout(repr(pairing))
+					printout('proof')
 					printout(repr(proof))
 
 					# check.check_proof(problem, proof)
+					check.check_proof_report(problem, proof)
 
 			elif excluding:
 				excludes.add (arg)
