@@ -983,6 +983,7 @@ ops = {'Plus':2, 'Minus':2, 'Times':2, 'Modulus':2,
 	'ROData':1, 'StackWrapper':2,
 	'ToFloatingPoint':1, 'ToFloatingPointSigned':2,
 	'ToFloatingPointUnsigned':2, 'FloatingPointCast':1,
+	'EqSelectiveWrapper': 3,
 }
 
 ops_to_smt = {'Plus':'bvadd', 'Minus':'bvsub', 'Times':'bvmul', 'Modulus':'bvurem',
