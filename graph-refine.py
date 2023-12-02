@@ -331,15 +331,18 @@ def main (args):
 				(_, fname) = arg.split(':', 1)
 				proofs = check.load_proofs_from_file(fname)
 				for k in proofs.keys():
+					printout('Checking proof of %s' % k)
 					[pair] = proofs[k]
 					problem, proof = pair
-					printout('Checking proof of %s' % k)
-					check.check_proof(problem, proof)
 
-					# printout('key')
-					# printout(repr(k))
-					# printout('value')
-					# printout(repr(proofs[k]))
+					printout('key')
+					printout(repr(k))
+					printout('problem')
+					printout(repr(problem))
+					printout('proof (%s)' % repr(type(proof)))
+					printout(repr(proof))
+
+					# check.check_proof(problem, proof)
 
 			elif excluding:
 				excludes.add (arg)
