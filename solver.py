@@ -807,6 +807,7 @@ class Solver:
                        % (i + 1))
                 trace ('I sent %s' % repr (e.prompt))
                 trace ('I got %s' % repr (e.response))
+                trace('exit code: %s' % (repr(self.online_solver.poll())))
                 trace ('restarting solver')
                 sys.exit(1) # FIXME:REMOVE
                 self.online_solver = None
