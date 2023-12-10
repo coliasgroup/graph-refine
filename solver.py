@@ -112,7 +112,7 @@ def parse_solver (bits):
     if not fast:
         timeout = 6000
     else:
-        timeout = 30
+        timeout = 120
     solver = SolverImpl(name, fast, args, timeout)
     if config:
         parse_config_change(config, solver)
