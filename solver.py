@@ -807,9 +807,10 @@ class Solver:
                        % (i + 1))
                 trace ('I sent %s' % repr (e.prompt))
                 trace ('I got %s' % repr (e.response))
+                trace('XXX poll: %s' % (repr(self.online_solver.poll())))
                 trace ('restarting solver')
-                trace ('HACK HACK HACK DIE')
-                sys.exit(1) # FIXME:REMOVE
+                # trace ('HACK HACK HACK DIE')
+                # sys.exit(1) # FIXME:REMOVE
                 self.online_solver = None
                 err = (e.prompt, e.response)
         trace ('Repeated SMT failure, giving up.')
