@@ -746,7 +746,7 @@ class Solver:
         self.mem_mode = solver.mem_mode
         self.online_solver = subprocess.Popen (solver.args,
                                                stdin = subprocess.PIPE, stdout = subprocess.PIPE,
-                                               stderr = devnull, preexec_fn = preexec (solver.timeout))
+                                               preexec_fn = preexec (solver.timeout))
         devnull.close ()
 
         for msg in self.preamble (solver):
