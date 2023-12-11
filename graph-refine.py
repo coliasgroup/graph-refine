@@ -425,8 +425,16 @@ def main():
         result = comb_results(r, result)
     return result
 
+def setup_query_hack():
+    import signal, traceback
+
+    def handler(sig, frame):
+        print ''.join(traceback.format_stack(frame))
+
+    signal.signal(signal.SIGINT, handler)
 
 if __name__ == '__main__':
+    setup_query_hack()
     sys.setrecursionlimit(5000)
     result = main()
     (code, category) = result_codes[result]
