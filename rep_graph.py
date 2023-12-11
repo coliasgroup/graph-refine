@@ -314,6 +314,8 @@ def pc_triv_hyp (vis):
     check_vis_is_vis (vis)
     return Hyp ('PCImp', vis, vis)
 
+HACK = set()
+
 class GraphSlice:
     """Used to represent a slice of potential execution in a graph where
     looping is limited to certain specific examples. For instance, we
@@ -900,6 +902,9 @@ class GraphSlice:
         return self.get_mem_calls_sexpr (mem_sexpr)
 
     def get_mem_calls_sexpr (self, mem_sexpr):
+        if mem_sexpr not in HACK:
+            trace ('XXX %s' % repr(mem_sexpr))
+            HACK.add(mem_sexpr)
         stores = set (['store-word32', 'store-word8', 'store-word64'])
         if mem_sexpr in self.mem_calls:
             return self.mem_calls[mem_sexpr]
