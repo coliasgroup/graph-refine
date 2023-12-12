@@ -902,9 +902,9 @@ class GraphSlice:
         return self.get_mem_calls_sexpr (mem_sexpr)
 
     def get_mem_calls_sexpr (self, mem_sexpr):
-        if mem_sexpr not in HACK:
-            trace ('XXX %s' % repr(mem_sexpr))
-            HACK.add(mem_sexpr)
+        # if mem_sexpr not in HACK:
+        #     trace ('XXX %s' % repr(mem_sexpr))
+        #     HACK.add(mem_sexpr)
         stores = set (['store-word32', 'store-word8', 'store-word64'])
         if mem_sexpr in self.mem_calls:
             return self.mem_calls[mem_sexpr]
@@ -921,6 +921,12 @@ class GraphSlice:
         assert not "mem_calls fallthrough", mem_sexpr
 
     def scan_mem_calls (self, env):
+        import sys, thread, traceback
+        frame = sys._current_frames()[thread.get_ident()]
+        print 'XXX scan_mem_calls <<<'
+        print ''.join(traceback.format_stack(frame))
+        print 'XXX scan_mem_calls >>>'
+
         mem_vs = [env[(nm, typ)]
                   for (nm, typ) in env
                   if typ == syntax.builtinTs['Mem']]
