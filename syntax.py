@@ -547,7 +547,7 @@ class Expr:
         elif self.kind == 'Type':
             self.val.serialise (xs)
         elif self.kind == 'Token':
-            xs.extend ([self.kind, self.name])
+            xs.append (self.name)
             self.typ.serialise (xs)
         else:
             assert not 'expr serialisable', self.kind
