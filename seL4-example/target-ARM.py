@@ -45,6 +45,12 @@ f.close ()
 print 'Pseudo-Compiling.'
 pseudo_compile.compile_funcs (functions)
 
+out = open("compliled_funcs.txt", 'w')
+for (f, func) in functions.iteritems():
+	for s in func.serialise():
+		out.write(s + '\n')
+out.close()
+
 print 'Doing stack/inst logic.'
 
 def make_pairings ():
