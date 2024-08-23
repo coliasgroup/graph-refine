@@ -41,6 +41,11 @@ objdump.install_rodata (f,
 )
 f.close ()
 
+out = open("pre_compliled_funcs.txt", 'w')
+for (f, func) in functions.iteritems():
+	for s in func.serialise():
+		out.write(s + '\n')
+out.close()
 
 print 'Pseudo-Compiling.'
 pseudo_compile.compile_funcs (functions)
@@ -64,8 +69,20 @@ def make_pairings ():
 
 make_pairings ()
 
+out = open("post_pairings.txt", 'w')
+for (f, func) in functions.iteritems():
+	for s in func.serialise():
+		out.write(s + '\n')
+out.close()
+
 import inst_logic
 inst_logic.add_inst_specs ()
+
+out = open("post_isns.txt", 'w')
+for (f, func) in functions.iteritems():
+	for s in func.serialise():
+		out.write(s + '\n')
+out.close()
 
 print 'Checking.'
 #syntax.check_funs (functions)
