@@ -932,6 +932,7 @@ def check_proof_report (p, proof, do_check = True):
 def save_proofs_to_file (fname, mode = 'w'):
     assert mode in ['w', 'a']
     f = open (fname, mode)
+    f_inline_scripts = open (fname + ".inline-scripts.txt", mode)
 
     def save (p, proof):
         f.write ('ProblemProof (%s) {\n' % p.name)
@@ -942,6 +943,16 @@ def save_proofs_to_file (fname, mode = 'w'):
         f.write (' '.join (ss))
         f.write ('\n}\n')
         f.flush ()
+
+        f_inline_scripts.write('InlineScript (%s) {\n' % p.name)
+        for tag in p.inline_scripts:
+            script = p.inline_scripts[tag]
+            for ((loc_fname, loc_node), idx, fname) in script:
+                f_inline_scripts.write(' '.join(map(str, [tag, loc_fname, loc_node, idx, fname])))
+                f_inline_scripts.write('\n')
+        f_inline_scripts.write ('}\n')
+        f_inline_scripts.flush ()
+
     return save
 
 def load_proofs_from_file (fname):
