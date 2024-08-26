@@ -84,6 +84,25 @@ for (f, func) in functions.iteritems():
 		out.write(s + '\n')
 out.close()
 
+f_eqs = open ("pairings.txt", 'w')
+
+print(repr(pairings))
+for x in pairings.values():
+	assert len(x) == 1
+	pairing = x[0]
+	f_eqs.write('%s {\n' % pairing.name)
+	in_eqs, out_eqs = pairing.eqs
+	for (this_label, these_eqs) in [("IN", in_eqs), ("OUT", out_eqs)]:
+		for ((l_exp, l_foo), (r_exp, r_foo)) in these_eqs:
+			ss = [this_label]
+			ss.append(l_foo)
+			l_exp.serialise(ss)
+			ss.append(r_foo)
+			r_exp.serialise(ss)
+			f_eqs.write('%s\n' % (' '.join(ss),))
+	f_eqs.write ('}\n')
+	f_eqs.flush ()
+
 print 'Checking.'
 #syntax.check_funs (functions)
 

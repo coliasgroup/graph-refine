@@ -933,7 +933,7 @@ def save_proofs_to_file (fname, mode = 'w'):
     assert mode in ['w', 'a']
     f = open (fname, mode)
     f_inline_scripts = open (fname + ".inline-scripts.txt", mode)
-    f_eqs = open (fname + ".eqs.txt", mode)
+    # f_eqs = open (fname + ".eqs.txt", mode)
 
     def save (p, proof):
         f.write ('ProblemProof (%s) {\n' % p.name)
@@ -945,18 +945,18 @@ def save_proofs_to_file (fname, mode = 'w'):
         f.write ('\n}\n')
         f.flush ()
 
-        f_eqs.write('Eqs (%s) {\n' % p.name)
-        in_eqs, out_eqs = p.pairing.eqs
-        for (this_label, these_eqs) in [("IN", in_eqs), ("OUT", out_eqs)]:
-            for ((l_exp, l_foo), (r_exp, r_foo)) in these_eqs:
-                ss = [this_label]
-                ss.append(l_foo)
-                l_exp.serialise(ss)
-                ss.append(r_foo)
-                r_exp.serialise(ss)
-                f_eqs.write('%s\n' % (' '.join(ss),))
-        f_eqs.write ('}\n')
-        f_eqs.flush ()
+        # f_eqs.write('Eqs (%s) {\n' % p.name)
+        # in_eqs, out_eqs = p.pairing.eqs
+        # for (this_label, these_eqs) in [("IN", in_eqs), ("OUT", out_eqs)]:
+        #     for ((l_exp, l_foo), (r_exp, r_foo)) in these_eqs:
+        #         ss = [this_label]
+        #         ss.append(l_foo)
+        #         l_exp.serialise(ss)
+        #         ss.append(r_foo)
+        #         r_exp.serialise(ss)
+        #         f_eqs.write('%s\n' % (' '.join(ss),))
+        # f_eqs.write ('}\n')
+        # f_eqs.flush ()
 
     return save
 
