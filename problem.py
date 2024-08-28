@@ -392,7 +392,7 @@ class Problem:
     def pad_merge_points (self):
         self.compute_preds ()
 
-        arcs = [(pred, n) for n in self.preds
+        arcs = [(pred, n) for n in sorted(self.preds)
                 if len (self.preds[n]) > 1
                 if n in sorted(self.nodes)
                 for pred in self.preds[n]
