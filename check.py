@@ -26,7 +26,7 @@ import syntax
 def build_problem (pairing, force_inline = None, avoid_abort = False):
 	p = Problem (pairing)
 
-	for (tag, fname) in pairing.funs.items ():
+	for (tag, fname) in sorted(pairing.funs.items ()):
 		p.add_entry_function (functions[fname], tag)
 
 	p.do_analysis ()
@@ -909,11 +909,16 @@ def check_proof_report_rec (p, restrs, hyps, proof, step_num, ctxt, inducts,
 def check_proof_report (p, proof, do_check = True):
 	res = check_proof_report_rec (p, (), init_point_hyps (p), proof,
 		1, '', (0, {}), do_check = do_check)
-	return bool (res)
+	res = bool (res)
+	if res and save_checked_proofs[0]:
+		save = save_checked_proofs[0]
+		save (p, proof)
+	return res
 
 def save_proofs_to_file (fname, mode = 'w'):
 	assert mode in ['w', 'a']
 	f = open (fname, mode)
+	f_inline_scripts = open (fname + ".inline-scripts.txt", mode)
 
 	def save (p, proof):
 		f.write ('ProblemProof (%s) {\n' % p.name)
@@ -924,6 +929,16 @@ def save_proofs_to_file (fname, mode = 'w'):
 		f.write (' '.join (ss))
 		f.write ('\n}\n')
 		f.flush ()
+
+		f_inline_scripts.write('InlineScript (%s) {\n' % p.name)
+		for tag in ["ASM", "C"]: # HACK order hardcoded, corresponds to function call order in build_problem
+			script = p.inline_scripts[tag]
+			for ((loc_fname, loc_node), idx, fname) in script:
+				f_inline_scripts.write(' '.join(map(str, [tag, loc_fname, loc_node, idx, fname])))
+				f_inline_scripts.write('\n')
+		f_inline_scripts.write ('}\n')
+		f_inline_scripts.flush ()
+
 	return save
 
 def load_proofs_from_file (fname):

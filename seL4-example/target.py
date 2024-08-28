@@ -54,6 +54,27 @@ make_pairings ()
 import inst_logic
 inst_logic.add_inst_specs ()
 
+def print_pairings():
+	f = open('pairings.txt', 'w')
+
+	for x in pairings.values():
+		assert len(x) == 1
+		pairing = x[0]
+		f.write('%s {\n' % pairing.name)
+		in_eqs, out_eqs = pairing.eqs
+		for (tag, eqs) in [('IN', in_eqs), ('OUT', out_eqs)]:
+			for ((l_expr, l_quadrant), (r_expr, r_quadrant)) in eqs:
+				ss = [tag]
+				ss.append(l_quadrant)
+				l_expr.serialise(ss)
+				ss.append(r_quadrant)
+				r_expr.serialise(ss)
+				f.write('%s\n' % (' '.join(ss),))
+		f.write ('}\n')
+		f.flush ()
+
+print_pairings()
+
 print 'Checking.'
 syntax.check_funs (functions)
 

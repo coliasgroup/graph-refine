@@ -87,10 +87,10 @@ class Problem:
 		node_renames.setdefault('Err', 'Err')
 		new_node_renames = {}
 		vs = syntax.get_vars (fun)
-		vs = dict ([(v, fresh_name (v, self.vs, vs[v])) for v in vs])
+		vs = dict ([(v, fresh_name (v, self.vs, vs[v])) for v in sorted(vs)])
 		ns = fun.reachable_nodes ()
 		check_no_symbols ([fun.nodes[n] for n in ns])
-		for n in ns:
+		for n in sorted(ns):
 			assert n not in node_renames
 			node_renames[n] = self.alloc_node (tag, (fun.name, n),
 				loop_id = loop_id, hint = n)
@@ -395,9 +395,9 @@ class Problem:
 	def pad_merge_points (self):
 		self.compute_preds ()
 
-		arcs = [(pred, n) for n in self.preds
+		arcs = [(pred, n) for n in sorted(self.preds)
 			if len (self.preds[n]) > 1
-			if n in self.nodes
+			if n in sorted(self.nodes)
 			for pred in self.preds[n]
 			if (self.nodes[pred].kind != 'Basic'
 				or self.nodes[pred].upds != [])]
