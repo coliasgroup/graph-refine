@@ -26,7 +26,7 @@ import syntax
 def build_problem (pairing, force_inline = None, avoid_abort = False):
     p = Problem (pairing)
 
-    for (tag, fname) in pairing.funs.items ():
+    for (tag, fname) in sorted(pairing.funs.items ()):
         p.add_entry_function (functions[fname], tag)
 
     p.do_analysis ()
