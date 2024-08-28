@@ -71,7 +71,7 @@ def print_pairings():
 		in_eqs, out_eqs = pairing.eqs
 		for (tag, eqs) in [('IN', in_eqs), ('OUT', out_eqs)]:
 			for ((l_expr, l_quadrant), (r_expr, r_quadrant)) in eqs:
-				ss = [this_label]
+				ss = [tag]
 				ss.append(l_quadrant)
 				l_expr.serialise(ss)
 				ss.append(r_quadrant)
