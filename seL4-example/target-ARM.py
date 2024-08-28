@@ -41,6 +41,7 @@ objdump.install_rodata (f,
 )
 f.close ()
 
+
 print 'Pseudo-Compiling.'
 pseudo_compile.compile_funcs (functions)
 
@@ -57,39 +58,29 @@ def make_pairings ():
 
 make_pairings ()
 
-out = open("pre-inst.txt", 'w')
-for (f, func) in functions.iteritems():
-	for s in func.serialise():
-		out.write(s + '\n')
-out.close()
-
 import inst_logic
 inst_logic.add_inst_specs ()
 
-out = open("post-inst.txt", 'w')
-for (f, func) in functions.iteritems():
-	for s in func.serialise():
-		out.write(s + '\n')
-out.close()
+def print_pairings():
+	f = open('pairings.txt', 'w')
 
-f_eqs = open ("pairings.txt", 'w')
+	for x in pairings.values():
+		assert len(x) == 1
+		pairing = x[0]
+		f.write('%s {\n' % pairing.name)
+		in_eqs, out_eqs = pairing.eqs
+		for (tag, eqs) in [('IN', in_eqs), ('OUT', out_eqs)]:
+			for ((l_expr, l_quadrant), (r_expr, r_quadrant)) in eqs:
+				ss = [this_label]
+				ss.append(l_quadrant)
+				l_expr.serialise(ss)
+				ss.append(r_quadrant)
+				r_expr.serialise(ss)
+				f.write('%s\n' % (' '.join(ss),))
+		f.write ('}\n')
+		f.flush ()
 
-print(repr(pairings))
-for x in pairings.values():
-	assert len(x) == 1
-	pairing = x[0]
-	f_eqs.write('%s {\n' % pairing.name)
-	in_eqs, out_eqs = pairing.eqs
-	for (this_label, these_eqs) in [("IN", in_eqs), ("OUT", out_eqs)]:
-		for ((l_exp, l_foo), (r_exp, r_foo)) in these_eqs:
-			ss = [this_label]
-			ss.append(l_foo)
-			l_exp.serialise(ss)
-			ss.append(r_foo)
-			r_exp.serialise(ss)
-			f_eqs.write('%s\n' % (' '.join(ss),))
-	f_eqs.write ('}\n')
-	f_eqs.flush ()
+print_pairings()
 
 print 'Checking.'
 #syntax.check_funs (functions)
