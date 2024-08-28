@@ -192,9 +192,8 @@ class ProofNode:
 			(eqs, n) = self.eqs_proof
 			ss.extend (['SingleRevInduct', '%d' % self.point,
 				tag, '%d' % n, '%d' % len (eqs)])
-			for (x, y) in eqs:
+			for x in eqs:
 				serialise_lambda (x, ss)
-				serialise_lambda (y, ss)
 			(pred, n_bound) = self.rev_proof
 			pred.serialise (ss)
 			ss.append ('%d' % n_bound)
@@ -283,7 +282,7 @@ def deserialise_inner (ss, i):
 		point = int (ss[i + 1])
 		tag = ss[i + 2]
 		n = int (ss[i + 3])
-		(i, eqs) = syntax.parse_list (deserialise_double_lambda, ss, i + 4)
+		(i, eqs) = syntax.parse_list (deserialise_lambda, ss, i + 4)
 		(i, pred) = syntax.parse_term (ss, i)
 		n_bound = int (ss[i])
 		(i, p1) = deserialise_inner (ss, i + 1)
