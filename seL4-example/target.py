@@ -31,7 +31,7 @@ assert not aconst_globals
 assert logic.aligned_address_sanity (afunctions, symbols, 4)
 
 f = open ('%s/kernel.elf.rodata' % target_dir)
-objdump.install_rodata (f, [('Section', '.rodata'), ('Symbol', 'kernel_devices'),
+objdump.install_rodata (f, [('Section', '.rodata'),
 	('Symbol', 'avail_p_regs')])
 f.close ()
 
