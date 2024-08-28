@@ -945,7 +945,7 @@ def save_proofs_to_file (fname, mode = 'w'):
         f.flush ()
 
         f_inline_scripts.write('InlineScript (%s) {\n' % p.name)
-        for tag in p.inline_scripts:
+        for tag in ["ASM", "C"]: # HACK order hardcoded, corresponds to function call order in build_problem
             script = p.inline_scripts[tag]
             for ((loc_fname, loc_node), idx, fname) in script:
                 f_inline_scripts.write(' '.join(map(str, [tag, loc_fname, loc_node, idx, fname])))
