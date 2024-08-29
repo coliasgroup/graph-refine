@@ -46,6 +46,10 @@ def build_problem (pairing, force_inline = None, avoid_abort = False):
 	if not avoid_abort:
 		p.check_no_inner_loops ()
 
+	if save_inline_scripts[0]:
+		save = save_inline_scripts[0]
+		save (p)
+
 	if save_problems[0]:
 		save = save_problems[0]
 		save (p)
@@ -975,6 +979,18 @@ def save_problems_to_file (fname, mode = 'w'):
 		f.write ('%s {\n' % p.name)
 		for s in p.serialise ():
 			f.write (s + '\n')
+		f.write ('\n}\n')
+		f.flush ()
+	return save
+
+save_inline_scripts = [None]
+
+def save_inline_scripts_to_file (fname, mode = 'w'):
+	assert mode in ['w', 'a']
+	f = open (fname, mode)
+
+	def save (p):
+		f.write ('%s {\n' % p.name)
 		for s in serialise_inline_scripts (p.inline_scripts):
 			f.write (s + '\n')
 		f.write ('\n}\n')
