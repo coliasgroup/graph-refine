@@ -979,7 +979,7 @@ def save_problems_to_file (fname, mode = 'w'):
 		f.write ('%s {\n' % p.name)
 		for s in p.serialise ():
 			f.write (s + '\n')
-		f.write ('\n}\n')
+		f.write ('}\n')
 		f.flush ()
 	return save
 
@@ -993,7 +993,7 @@ def save_inline_scripts_to_file (fname, mode = 'w'):
 		f.write ('%s {\n' % p.name)
 		for s in serialise_inline_scripts (p.inline_scripts):
 			f.write (s + '\n')
-		f.write ('\n}\n')
+		f.write ('}\n')
 		f.flush ()
 	return save
 
