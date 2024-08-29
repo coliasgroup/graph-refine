@@ -270,7 +270,7 @@ def save_pairings (fname):
 		out.write ('%s {\n' % pair.name)
 		for s in pair.serialise ():
 			out.write (s + '\n')
-		out.write ('\n}\n')
+		out.write ('}\n')
 		out.flush ()
 	out.close ()
 
