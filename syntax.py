@@ -1171,11 +1171,11 @@ lines. See syntax.quick_reference for an explanation.'''
 
 def parse_and_install_all (lines, tag, skip_functions=None):
 	if skip_functions == None:
-	    skip_functions = []
+		skip_functions = []
 	(structs, functions, const_globals) = parse_all (lines)
 	for f in skip_functions:
-	    if f in functions:
-		del functions[f]
+		if f in functions:
+			del functions[f]
 	target_objects.structs.update (structs)
 	target_objects.functions.update (functions)
 	target_objects.const_globals.update (const_globals)
