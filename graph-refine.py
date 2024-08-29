@@ -327,14 +327,18 @@ def main (args):
 			elif arg.startswith('save-pairings:'):
 				fname = arg[len ('save-pairings:') :]
 				save_pairings (fname)
-			elif arg.startswith('save-proofs:'):
-				fname = arg[len ('save-proofs:') :]
-				save = check.save_proofs_to_file (fname, 'a')
-				check.save_checked_proofs[0] = save
+			elif arg.startswith('save-inline-scripts:'):
+				fname = arg[len ('save-inline-scripts:') :]
+				save = check.save_inline_scripts_to_file (fname, 'a')
+				check.save_inline_scripts[0] = save
 			elif arg.startswith('save-problems:'):
 				fname = arg[len ('save-problems:') :]
 				save = check.save_problems_to_file (fname, 'a')
 				check.save_problems[0] = save
+			elif arg.startswith('save-proofs:'):
+				fname = arg[len ('save-proofs:') :]
+				save = check.save_proofs_to_file (fname, 'a')
+				check.save_checked_proofs[0] = save
 			elif arg == '-exclude':
 				excluding = True
 			elif arg == '-end-exclude':
