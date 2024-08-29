@@ -291,6 +291,7 @@ def main (args):
 	report = True
 	result = 'True'
 	pairs_to_check = []
+	only_build_problem_for_pairs = False
 	for arg in args:
 		r = 'True'
 		try:
@@ -339,6 +340,8 @@ def main (args):
 				fname = arg[len ('save-proofs:') :]
 				save = check.save_proofs_to_file (fname, 'a')
 				check.save_checked_proofs[0] = save
+			elif arg == '-only-build-problem':
+				only_build_problem_for_pairs = True
 			elif arg == '-exclude':
 				excluding = True
 			elif arg == '-end-exclude':
@@ -373,7 +376,7 @@ def main (args):
 		result = comb_results (r, result)
 	if pairs_to_check:
 		r = check_pairs (pairs_to_check, loops = loops,
-			report_mode = report)
+			report_mode = report, only_build_problem = only_build_problem_for_pairs)
 		result = comb_results (r, result)
 	return result
 
