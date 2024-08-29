@@ -46,6 +46,10 @@ def build_problem (pairing, force_inline = None, avoid_abort = False):
 	if not avoid_abort:
 		p.check_no_inner_loops ()
 
+	if save_problems[0]:
+		save = save_problems[0]
+		save (p)
+
 	return p
 
 def inline_completely_unmatched (p, ref_tags = None, skip_underspec = False):
@@ -961,3 +965,26 @@ def load_proofs_from_file (fname):
 	assert not lines
 	return proofs
 
+save_problems = [None]
+
+def save_problems_to_file (fname, mode = 'w'):
+	assert mode in ['w', 'a']
+	f = open (fname, mode)
+
+	def save (p):
+		f.write ('%s {\n' % p.name)
+		for s in p.serialise ():
+			f.write (s + '\n')
+		for s in serialise_inline_scripts (p.inline_scripts):
+			f.write (s + '\n')
+		f.write ('\n}\n')
+		f.flush ()
+	return save
+
+def serialise_inline_scripts (inline_scripts):
+	ss = ['InlineScript']
+	for tag in ["ASM", "C"]: # HACK order hardcoded, corresponds to function call order in build_problem
+		for ((loc_fname, loc_node), idx, fname) in inline_scripts[tag]:
+			ss.append (' '.join ([tag, loc_fname, str (loc_node), str (idx), fname]))
+	ss.append ('EndInlineScript')
+	return ss

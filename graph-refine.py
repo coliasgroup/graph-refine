@@ -312,6 +312,10 @@ def main (args):
 				fname = arg[len ('save-proofs:') :]
 				save = check.save_proofs_to_file (fname, 'a')
 				check.save_checked_proofs[0] = save
+			elif arg.startswith('save-problems:'):
+				fname = arg[len ('save-problems:') :]
+				save = check.save_problems_to_file (fname, 'a')
+				check.save_problems[0] = save
 			elif arg == '-exclude':
 				excluding = True
 			elif arg == '-end-exclude':
