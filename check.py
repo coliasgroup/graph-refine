@@ -73,7 +73,7 @@ def inline_completely_unmatched (p, ref_tags = None, skip_underspec = False):
 		for n in ns:
 			trace ('Function %s at %d - %s - completely unmatched.'
 				% (p.nodes[n].fname, n, p.node_tags[n][0]))
-			inline_at_point (p, n, do_analysis = False)
+			inline_at_point (p, n)
 		if not ns:
 			p.do_analysis ()
 			return
