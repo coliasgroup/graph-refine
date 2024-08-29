@@ -258,6 +258,22 @@ def save_compiled_funcs (fname):
 			out.write (s + '\n')
 	out.close ()
 
+def save_pairings (fname):
+	out = open (fname, 'w')
+	by_name = {}
+	for pairs in pairings.values ():
+		assert len (pairs) == 1
+		pair = pairs[0]
+		by_name[pair.name] = pair
+	for pair in by_name.values ():
+		trace ('Saving %s' % pair.name)
+		out.write ('%s {\n' % pair.name)
+		for s in pair.serialise ():
+			out.write (s + '\n')
+		out.write ('}\n')
+		out.flush ()
+	out.close ()
+
 def rerun_set (vs):
 	def get_strs (vs):
 		return [v for v in vs if type (v) == str] + [v2
@@ -308,6 +324,9 @@ def main (args):
 				loops = 'only'
 			elif arg.startswith('save:'):
 				save_compiled_funcs (arg[5:])
+			elif arg.startswith('save-pairings:'):
+				fname = arg[len ('save-pairings:') :]
+				save_pairings (fname)
 			elif arg.startswith('save-proofs:'):
 				fname = arg[len ('save-proofs:') :]
 				save = check.save_proofs_to_file (fname, 'a')
