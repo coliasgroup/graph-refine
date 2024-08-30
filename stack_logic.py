@@ -820,7 +820,7 @@ def stack_bounds_to_closed_form (bounds, names, idents):
 		for ident in extras:
 			alt = syntax.mk_word32 (bounds[(fname, ident)])
 			res = syntax.mk_if (ident, alt, res)
-		closed[fname] = res
+		closed[fname] = syntax.mk_plus (res, syntax.mk_word32 (1024))
 	return closed
 
 def compute_asm_stack_bounds (idents, names):
