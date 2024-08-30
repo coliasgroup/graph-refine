@@ -1278,6 +1278,8 @@ class Solver:
 		"""test a series of keyed hypotheses [(k1, h1), (k2, h2) ..etc]
 		either returns (True, -) all hypotheses true
 		or (False, ki) i-th hypothesis unprovable"""
+		if model is None:
+			model = {}
 		hyps = [(k, hyp) for (k, hyp) in hyps
 			if not self.test_hyp (hyp, env, force_solv = 'Fast',
 				catch = True, hyp_name = "('hyp', %s)" % k)]
@@ -1303,6 +1305,11 @@ class Solver:
 				break
 			elif strat == 'hyp' and res == 'sat':
 				trace ('  -- hyp refuted by %s' % nm)
+				# printout ("model: %s" % repr(model))
+				printout ("model:")
+				for (k, v) in model.iteritems():
+					printout ("\t%s:" % (repr(k)))
+					printout ("\t\t%s" % (repr(v)))
 				break
 			elif strat == 'hyp' and res == 'unsat':
 				ks = [(solver.name, strat, k)
