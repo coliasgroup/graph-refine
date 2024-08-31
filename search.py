@@ -1665,6 +1665,8 @@ def loop_no_match_unroll (rep, restrs, hyps, split, other_tag, unroll):
 
 def loop_no_match (rep, restrs, hyps, split, other_tag,
 		check_speculate_ineq = False):
+	if not loop_no_match_unroll (rep, restrs, hyps, split, other_tag, 1):
+		return False
 	if not loop_no_match_unroll (rep, restrs, hyps, split, other_tag, 4):
 		return False
 	if not loop_no_match_unroll (rep, restrs, hyps, split, other_tag, 8):
