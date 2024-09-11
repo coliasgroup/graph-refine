@@ -253,7 +253,6 @@ def check_deps (fname, report_mode = False):
 def save_compiled_funcs (fname):
 	out = open (fname, 'w')
 	for (f, func) in functions.iteritems ():
-		trace ('Saving %s' % f)
 		for s in func.serialise ():
 			out.write (s + '\n')
 	out.close ()
@@ -266,7 +265,6 @@ def save_pairings (fname):
 		pair = pairs[0]
 		by_name[pair.name] = pair
 	for pair in by_name.values ():
-		trace ('Saving %s' % pair.name)
 		out.write ('%s {\n' % pair.name)
 		for s in pair.serialise ():
 			out.write (s + '\n')
