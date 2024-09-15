@@ -1127,7 +1127,7 @@ class Solver:
 		cmds = ['(assert %s)' % hyp for (hyp, _) in hyps
 			] + ['(check-sat)']
 
-		if model != None:
+		if True:
 			cmds.append (self.fetch_model_request ())
 
 		if use_this_solver:
@@ -1169,7 +1169,7 @@ class Solver:
 			use_this_solver = None):
 		cmds = ['(assert %s)' % hyp for hyp in hyps] + ['(check-sat)']
 
-		if model != None:
+		if True:
 			cmds.append (self.fetch_model_request ())
 
 		trace ('  --> new parallel solver %s' % str (k))
@@ -1331,7 +1331,7 @@ class Solver:
 		cmds = []
 		for hyp in hyps:
 			cmds.extend (['(assert %s)' % hyp, '(check-sat)'])
-			if model != None:
+			if True:
 				cmds.append (self.fetch_model_request ())
 		(proc, output) = self.exec_slow_solver (cmds, timeout = timeout)
 
