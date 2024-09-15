@@ -125,6 +125,8 @@ def mk_aligned (w, n):
 	mask = Expr ('Num', w.typ, val = ((1 << n) - 1))
 	return mk_eq (mk_bwand (w, mask), mk_num (0, w.typ))
 
+foo_printing = [False]
+
 def mk_eqs_arm_none_eabi_gnu (var_c_args, var_c_rets, c_imem, c_omem,
 		min_stack_size):
 	arg_regs = mk_var_list (['r0', 'r1', 'r2', 'r3'], word32T)
