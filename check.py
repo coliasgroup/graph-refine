@@ -23,7 +23,7 @@ from syntax import (true_term, false_term, boolT, mk_var, mk_word32, mk_word8,
 	rename_expr)
 import syntax
 
-def build_problem (pairing, force_inline = None, avoid_abort = False):
+def build_problem (pairing, force_inline = None, avoid_abort = False, inline_scripts = None):
 	p = Problem (pairing)
 
 	for (tag, fname) in sorted (pairing.funs.items ()):
@@ -31,12 +31,21 @@ def build_problem (pairing, force_inline = None, avoid_abort = False):
 
 	p.do_analysis ()
 
-	# FIXME: the inlining is heuristic, and arguably belongs in 'search'
-	inline_completely_unmatched (p, skip_underspec = avoid_abort)
-	
-	# now do any C inlining
-	inline_reachable_unmatched_C (p, force_inline,
-		skip_underspec = avoid_abort)
+	if inline_scripts is not None:
+		trace ('Using provided inline script.')
+		for (tag, detail, index_in_problem, inlined_function) in inline_scripts:
+			n = p.node_tag_revs[(tag, detail)][index_in_problem]
+			node = p.nodes[n]
+			assert node.kind == 'Call'
+			assert node.fname == inlined_function
+			inline_at_point(p, n)
+	else:
+		trace ('Searching for inlining.')
+		# FIXME: the inlining is heuristic, and arguably belongs in 'search'
+		inline_completely_unmatched (p, skip_underspec = avoid_abort)
+		# now do any C inlining
+		inline_reachable_unmatched_C (p, force_inline,
+			skip_underspec = avoid_abort)
 
 	trace ('Done inlining.')
 
@@ -1004,3 +1013,41 @@ def serialise_inline_scripts (inline_scripts):
 			ss.append (' '.join ([tag, loc_fname, str (loc_node), str (idx), fname]))
 	ss.append ('EndInlineScript')
 	return ss
+
+def deserialise_inline_scripts (lines):
+	assert lines[0] == 'InlineScript', lines[0]
+	assert lines[-1] == 'EndInlineScript', lines[-1]
+	entries = []
+	for line in lines[1:-1]:
+		bits = line.split()
+		(tag, function_name, node_addr, index_in_problem, inlined_function) = bits
+		entry = (tag, (function_name, int(node_addr)), int(index_in_problem), inlined_function)
+		entries.append(entry)
+	return entries
+
+def load_inline_scripts_from_file (fname):
+	f = open (fname)
+
+	inline_scripts = {}
+	lines = None
+	for line in f:
+		line = line.strip ()
+		if line.startswith ('Problem'):
+			assert line.endswith ('{'), line
+			name_bit = line[:-1].strip ()
+			name = name_bit
+			lines = []
+		elif line == '}':
+			assert lines[0] == 'InlineScript'
+			assert lines[-1] == 'EndInlineScript'
+			trace ('loading inline script from %d lines' % len (lines))
+			scripts = deserialise_inline_scripts (lines)
+			inline_scripts[name] = scripts
+			trace ('loaded inline script %s' % name)
+			lines = None
+		elif line.startswith ('#'):
+			pass
+		elif line:
+			lines.append (line)
+	assert not lines
+	return inline_scripts

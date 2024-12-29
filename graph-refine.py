@@ -28,6 +28,7 @@ import time
 import sys
 
 loaded_proofs = {}
+loaded_inline_scripts = {}
 
 if __name__ == '__main__':
 	args = target_objects.load_target_args ()
@@ -54,7 +55,8 @@ def toplevel_check (pair, check_loops = True, report = False, count = None,
 	start_time = time.time()
 	sys.stdout.flush ()
 	try:
-		p = check.build_problem (pair)
+		inline_scripts = loaded_inline_scripts.get(problem.Problem(pair).name)
+		p = check.build_problem (pair, inline_scripts=inline_scripts)
 		if only_build_problem:
 			tracer[0] = prev_tracer
 			return 'True'
@@ -366,6 +368,9 @@ def main (args):
 				(_, fname) = arg.split(':', 1)
 				for (name, [(problem, proof)]) in check.load_proofs_from_file(fname).items():
 					loaded_proofs[name] = proof
+			elif arg.startswith ('use-inline-scripts-of:'):
+				(_, fname) = arg.split(':', 1)
+				loaded_inline_scripts.update(check.load_inline_scripts_from_file(fname))
 			elif excluding:
 				excludes.add (arg)
 			elif arg.startswith ('deps:'):
