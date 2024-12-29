@@ -765,11 +765,9 @@ class Solver:
 			solver = use_this_solver
 		else:
 			solver = self.fast_solver
-		devnull = open (os.devnull, 'w')
 		self.online_solver = subprocess.Popen (solver.args,
 			stdin = subprocess.PIPE, stdout = subprocess.PIPE,
-			stderr = devnull, preexec_fn = preexec (solver.timeout))
-		devnull.close ()
+			preexec_fn = preexec (solver.timeout))
 
 		for msg in self.preamble (solver):
 			self.send (msg, replay=False)
