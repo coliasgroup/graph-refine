@@ -27,6 +27,8 @@ import time
 
 import sys
 
+loaded_proofs = {}
+
 if __name__ == '__main__':
 	args = target_objects.load_target_args ()
 
@@ -66,9 +68,14 @@ def toplevel_check (pair, check_loops = True, report = False, count = None,
 			printout ('No loop in problem.')
 			tracer[0] = prev_tracer
 			return 'NoLoop'
-		proof = search.build_proof (p)
-		if report:
-			printout (' .. proof found.')
+		if p.name in loaded_proofs:
+			proof = loaded_proofs[p.name]
+			if report:
+				printout (' .. proof had already been loaded.')
+		else:
+			proof = search.build_proof (p)
+			if report:
+				printout (' .. proof found.')
 
 		try:
 			if report:
@@ -355,6 +362,10 @@ def main (args):
 				prev_fs = [f for pair in prev_proofs
 					for f in pair.funs.values ()]
 				excludes.update (prev_fs)
+			elif arg.startswith ('use-proofs-of:'):
+				(_, fname) = arg.split(':', 1)
+				for (name, [(problem, proof)]) in check.load_proofs_from_file(fname).items():
+					loaded_proofs[name] = proof
 			elif excluding:
 				excludes.add (arg)
 			elif arg.startswith ('deps:'):
