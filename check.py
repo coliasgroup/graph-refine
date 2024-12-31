@@ -832,7 +832,7 @@ def pretty_lambda (t):
 	return syntax.pretty_expr (t, print_type = True)
 
 def check_proof_report_rec (p, restrs, hyps, proof, step_num, ctxt, inducts,
-		do_check = True):
+		do_check = True, collect_checks = None):
 	printout ('Step %d: %s' % (step_num, ctxt))
 	if proof.kind == 'Restr':
 		(kind, (x, y)) = proof.restr_range
@@ -900,6 +900,9 @@ def check_proof_report_rec (p, restrs, hyps, proof, step_num, ctxt, inducts,
 		cases = ['case in (%d) where %d is visited' % (step_num, proof.point),
 			'case in (%d) where %d is not visited' % (step_num, proof.point)]
 
+	if collect_checks is not None:
+		collect_checks.extend(checks)
+
 	if checks and do_check:
 		groups = proof_check_groups (checks)
 		for group in groups:
@@ -921,7 +924,7 @@ def check_proof_report_rec (p, restrs, hyps, proof, step_num, ctxt, inducts,
 	for ((subprob, subproof), case) in xs:
 		(restrs, hyps, _) = subprob
 		res = check_proof_report_rec (p, restrs, hyps, subproof,
-			step_num, case, inducts, do_check = do_check)
+			step_num, case, inducts, do_check = do_check, collect_checks = collect_checks)
 		if not res:
 			return
 		(step_num, induct_var_num) = res
@@ -929,8 +932,12 @@ def check_proof_report_rec (p, restrs, hyps, proof, step_num, ctxt, inducts,
 	return (step_num, inducts[0])
 
 def check_proof_report (p, proof, do_check = True):
+	checks = [] if save_proof_checks[0] else None
 	res = check_proof_report_rec (p, (), init_point_hyps (p), proof,
-		1, '', (0, {}), do_check = do_check)
+		1, '', (0, {}), do_check = do_check, collect_checks = checks)
+	if save_proof_checks[0]:
+		save = save_proof_checks[0]
+		save (p, checks)
 	res = bool (res)
 	if res and save_checked_proofs[0]:
 		save = save_checked_proofs[0]
