@@ -207,7 +207,7 @@ class Hyp:
 			ss.append ('False')
 		else:
 			ss.append ('PC')
-			serialise_visit (pc[0], ss)
+			self.serialise_visit (pc[0], ss)
 			ss.append (pc[1])
 
 	def serialise_hyp (self, ss):
@@ -218,13 +218,14 @@ class Hyp:
 			self.serialise_pc (visit2, ss)
 		elif self.kind in ['Eq', 'EqIfAt']:
 			assert len (self.vals) == 2
-			ss.extend (self.kind)
+			ss.append (self.kind)
 			for (exp, visit) in self.vals:
 				exp.serialise (ss)
-				self.serialise_visit (visit, ss)
-			if induct:
-				ss.append ('%d' % induct[0])
-				ss.append ('%d' % induct[1])
+				self.serialise_visit (visit[0], ss)
+				ss.append (visit[1])
+			if self.induct:
+				ss.append ('%d' % self.induct[0])
+				ss.append ('%d' % self.induct[1])
 			else:
 				ss.extend (['None', 'None'])
 		else:
