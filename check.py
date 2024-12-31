@@ -300,7 +300,7 @@ def deserialise_inner (ss, i):
 		tag = ss[i + 2]
 		n = int (ss[i + 3])
 		(i, eqs) = syntax.parse_list (deserialise_lambda, ss, i + 4)
-		(i, pred) = syntax.parse_term (ss, i)
+		(i, pred) = syntax.parse_expr (ss, i)
 		n_bound = int (ss[i])
 		(i, p1) = deserialise_inner (ss, i + 1)
 		return (i, ProofNode ('SingleRevInduct', (point, (eqs, n),
