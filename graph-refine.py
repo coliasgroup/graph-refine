@@ -343,6 +343,10 @@ def main (args):
 				fname = arg[len ('save-problems:') :]
 				save = check.save_problems_to_file (fname, 'a')
 				check.save_problems[0] = save
+			elif arg.startswith('save-proof-checks:'):
+				fname = arg[len ('save-proof-checks:') :]
+				save = check.save_proof_checks_to_file (fname, 'a')
+				check.save_proof_checks[0] = save
 			elif arg.startswith('save-proofs:'):
 				fname = arg[len ('save-proofs:') :]
 				save = check.save_proofs_to_file (fname, 'a')

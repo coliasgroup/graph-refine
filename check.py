@@ -778,10 +778,16 @@ def failed_test_sets (p, checks):
 			failed.append (name)
 	return failed
 
+save_proof_checks = [None]
 save_checked_proofs = [None]
 
 def check_proof (p, proof, use_rep = None):
 	checks = proof_checks (p, proof)
+
+	if save_proof_checks[0]:
+		save = save_proof_checks[0]
+		save (p, checks)
+
 	groups = proof_check_groups (checks)
 
 	for group in groups:
@@ -930,6 +936,37 @@ def check_proof_report (p, proof, do_check = True):
 		save = save_checked_proofs[0]
 		save (p, proof)
 	return res
+
+def save_proof_checks_to_file (fname, mode = 'w'):
+	import json
+
+	assert mode in ['w', 'a']
+	f = open (fname, mode)
+
+	def serialisation_helper(serialise):
+		ss = []
+		serialise(ss)
+		return ' '.join(ss)
+
+	def save (p, checks):
+		obj = {
+			'problem_name': p.name,
+			'checks': [
+				{
+					'name': name,
+					'hyps': [
+						serialisation_helper(lambda ss: this_hyp.serialise_hyp(ss))
+						for this_hyp in hyps
+					],
+					'hyp': serialisation_helper(lambda ss: hyp.serialise_hyp(ss)),
+				}
+				for (hyps, hyp, name) in checks
+			]
+		}
+		json.dump(obj, f, indent=5)
+		f.write ('\n')
+		f.flush ()
+	return save
 
 def save_proofs_to_file (fname, mode = 'w'):
 	assert mode in ['w', 'a']
