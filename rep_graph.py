@@ -18,6 +18,8 @@ import problem
 
 hack_skip_smt_proof_checks = [False]
 
+save_smt_proof_checks = [None]
+
 class VisitCount:
 	"""Used to represent a target number of visits to a split point.
 	Options include a number (0, 1, 2), a symbolic offset (i + 1, i + 2),
@@ -1115,6 +1117,15 @@ class GraphSlice:
 		interp_imps = list (enumerate ([self.interpret_hyp_imps (hyps,
 				self.interpret_hyp (hyp))
 			for (hyps, hyp) in imps]))
+
+		if save_smt_proof_checks[0]:
+			obj = {
+				'setup': [ msg for (msg, _) in self.solv.replayable ],
+				'imps': [ smt_expr(hyp_, {}, self.solv) for (_, hyp_) in interp_imps ],
+			}
+			save = save_smt_proof_checks[0]
+			save (self.p, obj)
+
 		reqs = list (self.pc_env_requests)
 		last_test[0] = (self.interpret_hyp (hyp), hyps, reqs)
 		self.solv.add_pvalid_dom_assertions ()
@@ -1267,3 +1278,23 @@ def mk_function_link_hyps (p, call_vis, tag, adjust_eq_seq = None):
 
 	return hyps
 
+def save_smt_proof_checks_to_file (fname, mode = 'w'):
+	import json
+
+	assert mode in ['w', 'a']
+	f = open (fname, mode)
+
+	def serialisation_helper(serialise):
+		ss = []
+		serialise(ss)
+		return ' '.join(ss)
+
+	def save (p, obj):
+		obj = {
+			'problem_name': p.name,
+			'check_group': obj,
+		}
+		json.dump(obj, f, indent=5)
+		f.write ('\n')
+		f.flush ()
+	return save
