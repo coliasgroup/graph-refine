@@ -51,6 +51,8 @@ addition SONOLAR will be applied to try to solve all related hypotheses at
 once, which may be faster than solving them one at a time.
 """
 
+hack_offline_solvers_only = [False]
+
 solverlist_file = ['.solverlist']
 class SolverImpl:
 	def __init__ (self, name, fast, args, timeout):
@@ -1277,7 +1279,7 @@ class Solver:
 		either returns (True, -) all hypotheses true
 		or (False, ki) i-th hypothesis unprovable"""
 		hyps = [(k, hyp) for (k, hyp) in hyps
-			if not self.test_hyp (hyp, env, force_solv = 'Fast',
+			if hack_offline_solvers_only[0] or not self.test_hyp (hyp, env, force_solv = 'Fast',
 				catch = True, hyp_name = "('hyp', %s)" % k)]
 		assert not self.parallel_solvers
 		if not hyps:
