@@ -347,6 +347,8 @@ def main (args):
 				fname = arg[len ('save-proof-checks:') :]
 				save = check.save_proof_checks_to_file (fname, 'a')
 				check.save_proof_checks[0] = save
+			elif arg == 'hack-skip-checks':
+				rep_graph.hack_skip_checks[0] = True
 			elif arg.startswith('save-proofs:'):
 				fname = arg[len ('save-proofs:') :]
 				save = check.save_proofs_to_file (fname, 'a')
