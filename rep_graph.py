@@ -16,7 +16,7 @@ from target_objects import functions, pairings, sections, trace, printout
 import target_objects
 import problem
 
-hack_skip_checks = [False]
+hack_skip_smt_proof_checks = [False]
 
 class VisitCount:
 	"""Used to represent a target number of visits to a split point.
@@ -1119,7 +1119,9 @@ class GraphSlice:
 		last_test[0] = (self.interpret_hyp (hyp), hyps, reqs)
 		self.solv.add_pvalid_dom_assertions ()
 
-		if hack_skip_checks[0]:
+		if hack_skip_smt_proof_checks[0]:
+			trace ('!!! Skipping SMT proof check (trace)')
+			printout ('!!! Skipping SMT proof check (printout)')
 			result = (True, '???', 'unsat')
 		else:
 			result = self.solv.parallel_test_hyps (interp_imps, {})
