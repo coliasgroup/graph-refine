@@ -351,6 +351,10 @@ def main (args):
 				rep_graph.hack_skip_smt_proof_checks[0] = True
 			elif arg == 'hack-offline-solvers-only':
 				solver.hack_offline_solvers_only[0] = True
+			elif arg.startswith('save-smt-proof-checks:'):
+				fname = arg[len ('save-smt-proof-checks:') :]
+				save = rep_graph.save_smt_proof_checks_to_file (fname, 'a')
+				rep_graph.save_smt_proof_checks[0] = save
 			elif arg.startswith('save-proofs:'):
 				fname = arg[len ('save-proofs:') :]
 				save = check.save_proofs_to_file (fname, 'a')
