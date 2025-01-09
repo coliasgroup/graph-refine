@@ -542,6 +542,9 @@ class Expr:
 		elif self.kind == 'Token':
 			xs.append (self.name)
 			self.typ.serialise (xs)
+		elif self.kind == 'SMTExpr':
+			xs.append (''.join(['%02x' % ord(c) for c in repr(self.val)]))
+			self.typ.serialise (xs)
 		else:
 			assert not 'expr serialisable', self.kind
 
