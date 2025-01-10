@@ -1290,11 +1290,14 @@ def save_smt_proof_checks_to_file (fname, mode = 'w'):
 		return ' '.join(ss)
 
 	def save (p, obj):
-		obj = {
-			'problem_name': p.name,
-			'check_group': obj,
-		}
-		json.dump(obj, f, indent=5)
-		f.write ('\n')
+		f.write ('%s {\n' % p.name)
+		f.write ('%d\n' % len(obj['setup']))
+		f.write ('%d\n' % len(obj['imps']))
+		for s in obj['setup']:
+			f.write (s + '\n')
+		for s in obj['imps']:
+			f.write (s + '\n')
+		f.write ('}\n')
 		f.flush ()
+
 	return save
