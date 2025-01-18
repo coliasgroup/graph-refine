@@ -956,23 +956,17 @@ def save_proof_checks_to_file (fname, mode = 'w'):
 		return ' '.join(ss)
 
 	def save (p, checks):
-		obj = {
-			'problem_name': p.name,
-			'checks': [
-				{
-					'name': name,
-					'hyps': [
-						serialisation_helper(lambda ss: this_hyp.serialise_hyp(ss))
-						for this_hyp in hyps
-					],
-					'hyp': serialisation_helper(lambda ss: hyp.serialise_hyp(ss)),
-				}
-				for (hyps, hyp, name) in checks
-			]
-		}
-		json.dump(obj, f, indent=5)
-		f.write ('\n')
-		f.flush ()
+		for (hyps, hyp, name) in checks:
+			f.write ('%s {\n' % p.name)
+			f.write ('%d\n' % len(name))
+			f.write ('%s\n' % name)
+			f.write ('%s\n' % serialisation_helper(lambda ss: hyp.serialise_hyp(ss)))
+			f.write ('%d\n' % len(hyps))
+			for this_hyp in hyps:
+				f.write ('%s\n' % serialisation_helper(lambda ss: this_hyp.serialise_hyp(ss)))
+			f.write ('}\n')
+			f.flush ()
+
 	return save
 
 def save_proofs_to_file (fname, mode = 'w'):
