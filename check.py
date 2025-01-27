@@ -464,7 +464,7 @@ def loops_to_split (p, restrs):
 	return rem_loop_heads
 
 def restr_others (p, restrs, n):
-	extras = [(sp, vc_upto (n)) for sp in loops_to_split (p, restrs)]
+	extras = [(sp, vc_upto (n)) for sp in sorted (loops_to_split (p, restrs))]
 	return restrs + tuple (extras)
 
 def non_r_err_pc_hyp (tags, restrs):
