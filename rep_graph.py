@@ -70,6 +70,9 @@ class VisitCount:
 		(ns, os) = self.get_opts ()
 		return 'vc_options (%r, %r)' % (ns, os)
 
+	def __cmp__ (self, other):
+		return cmp (self.get_opts (), other.get_opts ())
+
 	def get_opts (self):
 		if self.kind == 'Options':
 			opts = self.opts
