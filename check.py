@@ -949,12 +949,12 @@ def check_proof_report (p, proof, do_check = True):
 		save (p, proof)
 	return res
 
-def save_proof_checks_to_file (fname):
+def serialisation_helper (serialise):
+	ss = []
+	serialise(ss)
+	return ' '.join(ss)
 
-	def serialisation_helper (serialise):
-		ss = []
-		serialise(ss)
-		return ' '.join(ss)
+def save_proof_checks_to_file (fname):
 
 	def serialise_hyp (hyp):
 		return serialisation_helper (lambda ss: hyp.serialise_hyp (ss))
@@ -977,20 +977,21 @@ def save_proof_checks_to_file (fname):
 
 	return (save, finalise)
 
-def save_proofs_to_file (fname, mode = 'w'):
-	assert mode in ['w', 'a']
-	f = open (fname, mode)
+def save_proofs_to_file (fname):
+
+	def serialise_proof (p, proof):
+		return serialisation_helper (lambda ss: proof.serialise (p, ss))
+
+	obj = {}
 
 	def save (p, proof):
-		f.write ('ProblemProof (%s) {\n' % p.name)
-		for s in p.serialise ():
-			f.write (s + '\n')
-		ss = []
-		proof.serialise (p, ss)
-		f.write (' '.join (ss))
-		f.write ('\n}\n')
-		f.flush ()
-	return save
+		obj[p.pairing.inner_name] = serialise_proof (p, proof)
+
+	def finalise ():
+		f = open (fname, 'w')
+		json.dump (obj, f, indent=2, sort_keys=True)
+
+	return (save, finalise)
 
 def load_proofs_from_file (fname):
 	f = open (fname)
