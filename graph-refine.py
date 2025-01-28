@@ -360,8 +360,9 @@ def main (args):
 				finalisers.append (finalise)
 			elif arg.startswith('save-proofs:'):
 				fname = arg[len ('save-proofs:') :]
-				save = check.save_proofs_to_file (fname, 'a')
+				(save, finalise) = check.save_proofs_to_file (fname)
 				check.save_checked_proofs[0] = save
+				finalisers.append (finalise)
 			elif arg == '-only-build-problem':
 				only_build_problem_for_pairs = True
 			elif arg == '-exclude':
