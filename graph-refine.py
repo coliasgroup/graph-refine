@@ -27,6 +27,8 @@ import time
 
 import sys
 
+import json
+
 loaded_proofs = {}
 loaded_inline_scripts = {}
 
@@ -267,19 +269,18 @@ def save_compiled_funcs (fname):
 	out.close ()
 
 def save_pairings (fname):
-	out = open (fname, 'w')
 	by_name = {}
 	for pairs in pairings.values ():
 		assert len (pairs) == 1
 		pair = pairs[0]
 		by_name[pair.name] = pair
+
+	obj = {}
 	for pair in by_name.values ():
-		out.write ('%s {\n' % pair.name)
-		for s in pair.serialise ():
-			out.write (s + '\n')
-		out.write ('}\n')
-		out.flush ()
-	out.close ()
+		obj[pair.inner_name] = pair.serialise ()
+
+	out = open (fname, 'w')
+	json.dump (obj, out, indent=2, sort_keys=True)
 
 def rerun_set (vs):
 	def get_strs (vs):
