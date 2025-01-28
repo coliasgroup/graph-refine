@@ -230,18 +230,17 @@ class Pairing:
 		return not other or not self == other
 
 	def serialise (self):
-		ss = ['Pairing']
+		obj = {}
 		in_eqs, out_eqs = self.eqs
-		for (tag, eqs) in [('IN', in_eqs), ('OUT', out_eqs)]:
+		for (tag, eqs) in [('in', in_eqs), ('out', out_eqs)]:
 			for ((l_expr, l_quadrant), (r_expr, r_quadrant)) in eqs:
-				xs = [tag]
+				xs = []
 				xs.append (l_quadrant)
 				l_expr.serialise ( xs)
 				xs.append (r_quadrant)
 				r_expr.serialise (xs)
-				ss.append(' '.join (xs))
-		ss.append ('EndPairing')
-		return ss
+				obj.setdefault(tag, []).append(' '.join (xs))
+		return obj
 
 def mk_pairing (functions, c_f, as_f, prunes = None, cpu = None):
 	fs = (functions[as_f], functions[c_f])
