@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
+import json
+
 from solver import Solver, merge_envs_pcs, smt_expr, mk_smt_expr, to_smt_expr
 from syntax import (true_term, false_term, boolT, mk_and, mk_not, mk_implies,
 	builtinTs, word32T, word8T, foldr1, mk_eq, mk_plus, mk_word32, mk_var)
@@ -1281,26 +1283,15 @@ def mk_function_link_hyps (p, call_vis, tag, adjust_eq_seq = None):
 
 	return hyps
 
-def save_smt_proof_checks_to_file (fname, mode = 'w'):
-	import json
+def save_smt_proof_checks_to_file (fname):
 
-	assert mode in ['w', 'a']
-	f = open (fname, mode)
+	obj = {}
 
-	def serialisation_helper(serialise):
-		ss = []
-		serialise(ss)
-		return ' '.join(ss)
+	def save (p, group):
+		obj.setdefault (p.pairing.inner_name, []).append (group)
 
-	def save (p, obj):
-		f.write ('%s {\n' % p.name)
-		f.write ('%d\n' % len(obj['setup']))
-		f.write ('%d\n' % len(obj['imps']))
-		for s in obj['setup']:
-			f.write (s + '\n')
-		for s in obj['imps']:
-			f.write (s + '\n')
-		f.write ('}\n')
-		f.flush ()
+	def finalise ():
+		f = open (fname, 'w')
+		json.dump (obj, f, indent=2, sort_keys=True)
 
-	return save
+	return (save, finalise)
