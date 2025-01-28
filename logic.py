@@ -209,8 +209,9 @@ class Pairing:
 
 		self.l_f = funs[l_tag]
 		self.r_f = funs[r_tag]
-		self.name = 'Pairing (%s (%s) <= %s (%s))' % (self.l_f,
+		self.inner_name = '%s (%s) <= %s (%s)' % (self.l_f,
 			l_tag, self.r_f, r_tag)
+		self.name = 'Pairing (%s)' % (self.inner_name)
 
 		self.notes = {}
 		if notes != None:

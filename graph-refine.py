@@ -299,6 +299,7 @@ def main (args):
 	result = 'True'
 	pairs_to_check = []
 	only_build_problem_for_pairs = False
+	finalisers = []
 	for arg in args:
 		r = 'True'
 		try:
@@ -345,16 +346,18 @@ def main (args):
 				check.save_problems[0] = save
 			elif arg.startswith('save-proof-checks:'):
 				fname = arg[len ('save-proof-checks:') :]
-				save = check.save_proof_checks_to_file (fname, 'a')
+				(save, finalise) = check.save_proof_checks_to_file (fname)
 				check.save_proof_checks[0] = save
+				finalisers.append (finalise)
 			elif arg == 'hack-skip-smt-proof-checks':
 				rep_graph.hack_skip_smt_proof_checks[0] = True
 			elif arg == 'hack-offline-solvers-only':
 				solver.hack_offline_solvers_only[0] = True
 			elif arg.startswith('save-smt-proof-checks:'):
 				fname = arg[len ('save-smt-proof-checks:') :]
-				save = rep_graph.save_smt_proof_checks_to_file (fname, 'a')
+				(save, finalise) = rep_graph.save_smt_proof_checks_to_file (fname)
 				rep_graph.save_smt_proof_checks[0] = save
+				finalisers.append (finalise)
 			elif arg.startswith('save-proofs:'):
 				fname = arg[len ('save-proofs:') :]
 				save = check.save_proofs_to_file (fname, 'a')
@@ -404,6 +407,8 @@ def main (args):
 		r = check_pairs (pairs_to_check, loops = loops,
 			report_mode = report, only_build_problem = only_build_problem_for_pairs)
 		result = comb_results (r, result)
+	for finaliser in finalisers:
+		finaliser ()
 	return result
 
 if __name__ == '__main__':

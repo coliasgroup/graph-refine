@@ -6,6 +6,8 @@
 
 # proof scripts and check process
 
+import json
+
 from rep_graph import mk_graph_slice, Hyp, eq_hyp, pc_true_hyp, pc_false_hyp
 import rep_graph
 from problem import Problem, inline_at_point
@@ -947,30 +949,33 @@ def check_proof_report (p, proof, do_check = True):
 		save (p, proof)
 	return res
 
-def save_proof_checks_to_file (fname, mode = 'w'):
-	import json
+def save_proof_checks_to_file (fname):
 
-	assert mode in ['w', 'a']
-	f = open (fname, mode)
-
-	def serialisation_helper(serialise):
+	def serialisation_helper (serialise):
 		ss = []
 		serialise(ss)
 		return ' '.join(ss)
 
-	def save (p, checks):
-		for (hyps, hyp, name) in checks:
-			f.write ('%s {\n' % p.name)
-			f.write ('%d\n' % len(name))
-			f.write ('%s\n' % name)
-			f.write ('%s\n' % serialisation_helper(lambda ss: hyp.serialise_hyp(ss)))
-			f.write ('%d\n' % len(hyps))
-			for this_hyp in hyps:
-				f.write ('%s\n' % serialisation_helper(lambda ss: this_hyp.serialise_hyp(ss)))
-			f.write ('}\n')
-			f.flush ()
+	def serialise_hyp (hyp):
+		return serialisation_helper (lambda ss: hyp.serialise_hyp (ss))
 
-	return save
+	obj = {}
+
+	def save (p, checks):
+		arr = []
+		for (hyps, hyp, name) in checks:
+			arr.append({
+				'meta': name,
+				'hyps': [ serialise_hyp (h) for h in hyps ],
+				'hyp': serialise_hyp (hyp),
+				})
+		obj[p.pairing.inner_name] = arr
+
+	def finalise ():
+		f = open (fname, 'w')
+		json.dump (obj, f, indent=2, sort_keys=True)
+
+	return (save, finalise)
 
 def save_proofs_to_file (fname, mode = 'w'):
 	assert mode in ['w', 'a']
