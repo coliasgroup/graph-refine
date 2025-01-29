@@ -1011,12 +1011,12 @@ def load_proofs_from_file (fname):
 			assert lines[0] == 'Problem'
 			assert lines[-2] == 'EndProblem'
 			import problem
-			trace ('loading proof from %d lines' % len (lines))
+			# trace ('loading proof from %d lines' % len (lines))
 			p = problem.deserialise (name, lines[:-1])
 			proof = deserialise (lines[-1])
 			proofs.setdefault (name, [])
 			proofs[name].append ((p, proof))
-			trace ('loaded proof %s' % name)
+			# trace ('loaded proof %s' % name)
 			lines = None
 		elif line.startswith ('#'):
 			pass
