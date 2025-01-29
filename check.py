@@ -995,34 +995,10 @@ def save_proofs_to_file (fname):
 
 def load_proofs_from_file (fname):
 	f = open (fname)
-
+	obj = json.load (f)
 	proofs = {}
-	lines = None
-	for line in f:
-		line = line.strip ()
-		if line.startswith ('ProblemProof'):
-			assert line.endswith ('{'), line
-			name_bit = line[len ('ProblemProof') : -1].strip ()
-			assert name_bit.startswith ('('), name_bit
-			assert name_bit.endswith (')'), name_bit
-			name = name_bit[1:-1]
-			lines = []
-		elif line == '}':
-			assert lines[0] == 'Problem'
-			assert lines[-2] == 'EndProblem'
-			import problem
-			# trace ('loading proof from %d lines' % len (lines))
-			p = problem.deserialise (name, lines[:-1])
-			proof = deserialise (lines[-1])
-			proofs.setdefault (name, [])
-			proofs[name].append ((p, proof))
-			# trace ('loaded proof %s' % name)
-			lines = None
-		elif line.startswith ('#'):
-			pass
-		elif line:
-			lines.append (line)
-	assert not lines
+	for (name, proof) in obj.items ():
+		proofs['Problem (Pairing (%s))' % name] = deserialise (proof)
 	return proofs
 
 save_problems = [None]
@@ -1060,40 +1036,17 @@ def serialise_inline_scripts (inline_scripts):
 			ss.append (' '.join ([tag, loc_fname, str (loc_node), str (idx), fname]))
 	return ss
 
-def deserialise_inline_scripts (lines):
-	assert lines[0] == 'InlineScript', lines[0]
-	assert lines[-1] == 'EndInlineScript', lines[-1]
-	entries = []
-	for line in lines[1:-1]:
-		bits = line.split()
-		(tag, function_name, node_addr, index_in_problem, inlined_function) = bits
-		entry = (tag, (function_name, int(node_addr)), int(index_in_problem), inlined_function)
-		entries.append(entry)
-	return entries
+def deserialise_inline_script_entry (line):
+	bits = line.split()
+	(tag, function_name, node_addr, index_in_problem, inlined_function) = bits
+	return (tag, (function_name, int(node_addr)), int(index_in_problem), inlined_function)
 
 def load_inline_scripts_from_file (fname):
 	f = open (fname)
+	obj = json.load (f)
 
 	inline_scripts = {}
-	lines = None
-	for line in f:
-		line = line.strip ()
-		if line.startswith ('Problem'):
-			assert line.endswith ('{'), line
-			name_bit = line[:-1].strip ()
-			name = name_bit
-			lines = []
-		elif line == '}':
-			assert lines[0] == 'InlineScript'
-			assert lines[-1] == 'EndInlineScript'
-			# trace ('loading inline script from %d lines' % len (lines))
-			scripts = deserialise_inline_scripts (lines)
-			inline_scripts[name] = scripts
-			# trace ('loaded inline script %s' % name)
-			lines = None
-		elif line.startswith ('#'):
-			pass
-		elif line:
-			lines.append (line)
-	assert not lines
+	for (name, lines) in obj.items ():
+		inline_scripts['Problem (Pairing (%s))' % name] = [ deserialise_inline_script_entry (line) for line in lines ]
+
 	return inline_scripts
