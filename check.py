@@ -1086,10 +1086,10 @@ def load_inline_scripts_from_file (fname):
 		elif line == '}':
 			assert lines[0] == 'InlineScript'
 			assert lines[-1] == 'EndInlineScript'
-			trace ('loading inline script from %d lines' % len (lines))
+			# trace ('loading inline script from %d lines' % len (lines))
 			scripts = deserialise_inline_scripts (lines)
 			inline_scripts[name] = scripts
-			trace ('loaded inline script %s' % name)
+			# trace ('loaded inline script %s' % name)
 			lines = None
 		elif line.startswith ('#'):
 			pass
