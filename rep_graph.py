@@ -1127,7 +1127,7 @@ class GraphSlice:
 			obj = {
 				'setup': [ msg for (msg, _) in self.solv.replayable ],
 				'imps': [
-					{ 'meta': (), 'term': smt_expr(hyp_, {}, self.solv) }
+					{ 'meta': None, 'term': smt_expr(hyp_, {}, self.solv) }
 					for (_, hyp_) in interp_imps
 					],
 			}
