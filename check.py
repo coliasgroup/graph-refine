@@ -998,7 +998,7 @@ def load_proofs_from_file (fname):
 	obj = json.load (f)
 	proofs = {}
 	for (name, proof) in obj.items ():
-		proofs['Problem (Pairing (%s))' % name] = deserialise (proof)
+		proofs['Problem (Pairing (%s))' % name] = deserialise (str (proof))
 	return proofs
 
 save_problems = [None]
@@ -1047,6 +1047,6 @@ def load_inline_scripts_from_file (fname):
 
 	inline_scripts = {}
 	for (name, lines) in obj.items ():
-		inline_scripts['Problem (Pairing (%s))' % name] = [ deserialise_inline_script_entry (line) for line in lines ]
+		inline_scripts['Problem (Pairing (%s))' % name] = [ deserialise_inline_script_entry (str (line)) for line in lines ]
 
 	return inline_scripts
