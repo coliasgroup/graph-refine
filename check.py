@@ -1040,24 +1040,24 @@ def save_problems_to_file (fname, mode = 'w'):
 
 save_inline_scripts = [None]
 
-def save_inline_scripts_to_file (fname, mode = 'w'):
-	assert mode in ['w', 'a']
-	f = open (fname, mode)
+def save_inline_scripts_to_file (fname):
+
+	obj = {}
 
 	def save (p):
-		f.write ('%s {\n' % p.name)
-		for s in serialise_inline_scripts (p.inline_scripts):
-			f.write (s + '\n')
-		f.write ('}\n')
-		f.flush ()
-	return save
+		obj[p.pairing.inner_name] = serialise_inline_scripts (p.inline_scripts)
+
+	def finalise ():
+		f = open (fname, 'w')
+		json.dump (obj, f, indent=2, sort_keys=True)
+
+	return (save, finalise)
 
 def serialise_inline_scripts (inline_scripts):
-	ss = ['InlineScript']
+	ss = []
 	for tag in ["ASM", "C"]: # HACK order hardcoded, corresponds to function call order in build_problem
 		for ((loc_fname, loc_node), idx, fname) in inline_scripts[tag]:
 			ss.append (' '.join ([tag, loc_fname, str (loc_node), str (idx), fname]))
-	ss.append ('EndInlineScript')
 	return ss
 
 def deserialise_inline_scripts (lines):
