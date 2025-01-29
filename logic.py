@@ -239,7 +239,7 @@ class Pairing:
 				l_expr.serialise ( xs)
 				xs.append (r_quadrant)
 				r_expr.serialise (xs)
-				obj.setdefault(tag, []).append(' '.join (xs))
+				obj.setdefault (tag, []).append(' '.join (xs))
 		return obj
 
 def mk_pairing (functions, c_f, as_f, prunes = None, cpu = None):
