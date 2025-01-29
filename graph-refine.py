@@ -339,8 +339,9 @@ def main (args):
 				save_pairings (fname)
 			elif arg.startswith('save-inline-scripts:'):
 				fname = arg[len ('save-inline-scripts:') :]
-				save = check.save_inline_scripts_to_file (fname, 'a')
+				(save, finalise) = check.save_inline_scripts_to_file (fname)
 				check.save_inline_scripts[0] = save
+				finalisers.append (finalise)
 			elif arg.startswith('save-problems:'):
 				fname = arg[len ('save-problems:') :]
 				save = check.save_problems_to_file (fname, 'a')
