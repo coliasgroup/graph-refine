@@ -1032,10 +1032,9 @@ def save_problems_to_file (fname, mode = 'w'):
 	f = open (fname, mode)
 
 	def save (p):
-		f.write ('%s {\n' % p.name)
 		for s in p.serialise ():
 			f.write (s + '\n')
-		f.write ('}\n')
+		f.write ('\n')
 		f.flush ()
 	return save
 
