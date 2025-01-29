@@ -384,7 +384,7 @@ def main (args):
 				excludes.update (prev_fs)
 			elif arg.startswith ('use-proofs-of:'):
 				(_, fname) = arg.split(':', 1)
-				for (name, [(problem, proof)]) in check.load_proofs_from_file(fname).items():
+				for (name, proof) in check.load_proofs_from_file(fname).items():
 					loaded_proofs[name] = proof
 			elif arg.startswith ('use-inline-scripts-of:'):
 				(_, fname) = arg.split(':', 1)
