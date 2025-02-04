@@ -1124,12 +1124,13 @@ class GraphSlice:
 			for (hyps, hyp) in imps]))
 
 		if save_smt_proof_checks[0]:
+			save_imps = [
+				{ 'meta': None, 'term': smt_expr(hyp_, {}, self.solv) }
+				for (_, hyp_) in interp_imps
+			]
 			obj = {
+				'imps': save_imps,
 				'setup': [ msg for (msg, _) in self.solv.replayable ],
-				'imps': [
-					{ 'meta': None, 'term': smt_expr(hyp_, {}, self.solv) }
-					for (_, hyp_) in interp_imps
-					],
 			}
 			save = save_smt_proof_checks[0]
 			save (self.p, obj)
