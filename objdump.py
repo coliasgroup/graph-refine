@@ -90,7 +90,7 @@ def build_rodata (rodata_stream, rodata_ranges = [('Section', '.rodata')]):
 
 	rodata_ptrs = []
 	for ((start, end), name) in zip (comb_ranges, rodata_names):
-		struct_name = fresh_name (name, structs)
+		struct_name = fresh_name (name, structs, assert_already_fresh=True)
 		struct = Struct (struct_name, (end - start) + 1, 1)
 		structs[struct_name] = struct
 		typ = syntax.get_global_wrapper (struct.typ)

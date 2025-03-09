@@ -899,7 +899,7 @@ global_wrappers = {}
 def get_global_wrapper (typ):
 	if typ in global_wrappers:
 		return global_wrappers[typ]
-	struct_name = fresh_name ('Global (%s)' % typ, structs)
+	struct_name = fresh_name ('Global (%s)' % typ, structs, assert_already_fresh=True)
 	struct = Struct (struct_name, typ.size (), typ.align ())
 	struct.add_field ('v', typ, 0)
 	structs[struct_name] = struct
@@ -1544,10 +1544,12 @@ def pretty_expr (expr, print_type = False):
 # =================================================
 # some helper code that's needed all over the place
 
-def fresh_name (n, D, v=True):
+def fresh_name (n, D, v=True, assert_already_fresh=False):
 	if n not in D:
 		D[n] = v
 		return n
+
+	assert not assert_already_fresh
 
 	x = 1
 	y = 1
