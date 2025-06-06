@@ -36,6 +36,7 @@ class VisitCount:
 			self.n = value
 		elif kind == 'Options':
 			self.opts = tuple (value)
+			assert len (self.opts) > 1
 			for opt in self.opts:
 				assert opt.kind in ['Number', 'Offset']
 		else:
@@ -631,6 +632,7 @@ class GraphSlice:
 		r = self.solv.add_var_restr (name, typ, mem_name = mem_name)
 		if typ == syntax.builtinTs['Mem']:
 			r_x = solver.parse_s_expression (r)
+			assert mem_calls is not None
 			self.mem_calls[r_x] = mem_calls
 		return r
 
@@ -740,9 +742,11 @@ class GraphSlice:
 
 	def post_emit_node_hooks (self, (n, vcount)):
 		for hook in target_objects.hooks ('post_emit_node'):
+			assert False
 			hook (self, (n, vcount))
 
 	def fetch_known_eqs (self, n_vc, tag):
+		assert len(self.p.known_eqs) == 0
 		if not self.use_known_eqs:
 			return None
 		eqs = self.p.known_eqs.get ((n_vc, tag))
@@ -1223,6 +1227,7 @@ def mem_calls_compatible (tags, l_mem_calls, r_mem_calls):
 		pairs = [pair for pair in pairings[fname]
 			if pair.tags == tags]
 		if not pairs:
+			assert False
 			return (None, 'no pairing for %s' % fname)
 		assert len (pairs) <= 1, pairs
 		[pair] = pairs

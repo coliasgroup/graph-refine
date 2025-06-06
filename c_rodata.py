@@ -14,6 +14,7 @@ def get_cache (p):
 	return p.cached_analysis[k]
 
 def hook (rep, (n, vc)):
+	assert False
 	p = rep.p
 	tag = p.node_tags[n][0]
 	is_C = tag == 'C' or p.hook_tag_hints.get (tag, None) == 'C'
@@ -24,6 +25,7 @@ def hook (rep, (n, vc)):
 		if kind == 'MemUpdate']
 	if not upd_ps:
 		return
+	assert False
 	cache = get_cache (p)
 	for ptr in set (upd_ps):
 		pc = rep.get_pc ((n, vc))
@@ -33,9 +35,11 @@ def hook (rep, (n, vc)):
 		if ((n, vc), ptr) in cache:
 			res = cache[((n, vc), ptr)]
 		else:
+			assert False
 			res = rep.test_hyp_whyps (hyp, [], cache = cache)
 			cache[((n, vc), ptr)] = res
 		if res:
+			assert False
 			rep.solv.assert_fact (hyp, {})
 
 module_hook_k = 'c_rodata'

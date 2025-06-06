@@ -401,6 +401,7 @@ def smt_expr (expr, env, solv):
 		assert st2[0] == 'SplitMem', (expr.vals, st2)
 		[_, split2, top2, bot2] = st2
 		if split2 != sp2:
+			assert False
 			res = solv.check_hyp_raw ('(= %s %s)' % (split2, sp2))
 			assert res == 'unsat', (split2, sp2, expr.vals)
 		eq = solv.get_stack_eq_implies (split2, top2, st1)
