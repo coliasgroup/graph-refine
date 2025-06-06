@@ -507,8 +507,6 @@ def norm_array_type (t):
 	else:
 		return t
 
-stored_styp_conditions = {}
-
 def get_styp_condition (offs, inner_typ, outer_typ):
 	r = get_styp_condition_inner1 (inner_typ, outer_typ)
 	if not r:
@@ -520,10 +518,7 @@ def get_styp_condition_inner1 (inner_typ, outer_typ):
 	inner_typ = norm_array_type (inner_typ)
 	outer_typ = norm_array_type (outer_typ)
 	k = (inner_typ, outer_typ)
-	if k in stored_styp_conditions:
-		return stored_styp_conditions[k]
 	r = get_styp_condition_inner2 (inner_typ, outer_typ)
-	stored_styp_conditions[k] = r
 	return r
 
 def array_typ_size ((kind, el_typ, num, _)):
