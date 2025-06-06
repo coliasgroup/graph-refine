@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
+from collections import OrderedDict
+
 import syntax
 from syntax import word32T, word8T, boolT, builtinTs, Expr, Node
 from syntax import true_term, false_term, mk_num
@@ -545,8 +547,8 @@ def get_styp_condition_inner2 (inner_typ, outer_typ):
 	elif outer_typ[0] == 'Type' and outer_typ[1].kind == 'Struct':
 		conds = [(get_styp_condition_inner1 (inner_typ,
 				('Type', sf_typ)), mk_word32 (offs2))
-			for (_, offs2, sf_typ)
-			in structs[outer_typ[1].name].fields.itervalues()]
+			for (_, (_, offs2, sf_typ))
+			in sorted (structs[outer_typ[1].name].fields.iteritems())]
 		conds = [cond for cond in conds if cond[0]]
 		if conds:
 			return lambda offs: foldr1 (mk_or,
@@ -1546,7 +1548,7 @@ def apply_rel_wrapper (lhs, rhs):
 	if ops == set (['StackWrapper']):
 		[sp1, st1] = lhs.vals[:2]
 		[sp2, st2] = rhs.vals[:2]
-		excepts = list (set (lhs.vals[2:] + rhs.vals[2:]))
+		excepts = list (OrderedDict.fromkeys (lhs.vals[2:] + rhs.vals[2:]))
 		for p in excepts:
 			st1 = syntax.mk_memupd (st1, p, syntax.mk_word32 (0))
 			st2 = syntax.mk_memupd (st2, p, syntax.mk_word32 (0))

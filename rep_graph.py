@@ -438,7 +438,7 @@ class GraphSlice:
 				mem_name = mem_name, mem_calls = mem_calls)
 		env = {}
 		consts = set ()
-		for (nm, typ) in prev_env:
+		for (nm, typ) in sorted (prev_env):
 			check_const = self.fast or (typ in
 				[builtinTs['HTD'], builtinTs['Dom']])
 			if check_const and self.is_synt_const (nm, typ, split):
@@ -447,7 +447,7 @@ class GraphSlice:
 			else:
 				env[(nm, typ)] = av (nm + '_after', typ,
 					('Loop', prev_env[(nm, typ)]))
-		for (nm, typ) in prev_env:
+		for (nm, typ) in sorted (prev_env):
 			if (nm, typ) in consts:
 				continue
 			z = self.var_rep_request ((nm, typ), 'Loop',
@@ -506,7 +506,7 @@ class GraphSlice:
 					return False
 				if upds:
 					new_nm = upds[0].name
-			preds = [(new_nm, n2) for n2 in self.p.preds[n]
+			preds = [(new_nm, n2) for n2 in sorted (self.p.preds[n])
 				if n2 in loop_set]
 			unknowns = [p for p in preds if p not in safe]
 			if unknowns:
@@ -542,7 +542,7 @@ class GraphSlice:
 			if split == n and count == vc_offs (0):
 				return self.get_loop_pc_env (split, vcount)
 
-		pc_envs = [pc_env for n_prev in self.p.preds[n]
+		pc_envs = [pc_env for n_prev in sorted (self.p.preds[n])
 			if self.p.node_tags[n_prev][0] == tag
 			for pc_env in self.get_arc_pc_envs (n_prev,
 				(n, vcount))]
@@ -565,7 +565,7 @@ class GraphSlice:
 			name = self.solv.add_def (name, pc, env)
 			pc = mk_smt_expr (name, boolT)
 		
-		for (nm, typ) in env:
+		for (nm, typ) in sorted (env):
 			if len (env[(nm, typ)]) > 80:
 				env[(nm, typ)] = self.contract (nm, (n, vcount),
 					env[(nm, typ)], typ)
@@ -915,7 +915,7 @@ class GraphSlice:
 
 	def scan_mem_calls (self, env):
 		mem_vs = [env[(nm, typ)]
-			for (nm, typ) in env
+			for (nm, typ) in sorted (env)
 			if typ == syntax.builtinTs['Mem']]
 		mem_calls = [self.get_mem_calls (v)
 			for v in mem_vs if v[0] != 'SplitMem']
@@ -1039,7 +1039,7 @@ class GraphSlice:
 	def prevs (self, (n, vcount)):
 		prevs = []
 		vcount_d = dict (vcount)
-		for p in self.p.preds[n]:
+		for p in sorted (self.p.preds[n]):
 			if p in vcount_d:
 				vcount2 = self.incr (vcount, p, -1)
 				if vcount2 == None:

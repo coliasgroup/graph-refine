@@ -398,7 +398,7 @@ class Problem:
 		arcs = [(pred, n) for n in sorted (self.preds)
 			if len (self.preds[n]) > 1
 			if n in self.nodes
-			for pred in self.preds[n]
+			for pred in sorted (self.preds[n])
 			if (self.nodes[pred].kind != 'Basic'
 				or self.nodes[pred].upds != [])]
 

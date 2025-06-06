@@ -8,6 +8,8 @@
 # which support SMTLIB2 push/pop and are controlled by pipe, and heavyweight
 # 'slow' solvers which are run once per problem on static input files.
 import signal
+from collections import OrderedDict
+
 solverlist_missing = """
 This tool requires the use of an SMT solver.
 
@@ -955,7 +957,7 @@ class Solver:
 			assert ro_witness == 'rodata-witness'
 			assert ro_witness_val == 'rodata-witness-val'
 			eq_vs = [(smt_num (p, 32), smt_num (v, 32))
-				for (p, v) in rodata_data.iteritems ()]
+				for (p, v) in sorted (rodata_data.iteritems ())]
 			eq_vs.append ((ro_witness, ro_witness_val))
 			eqs = ['(= (load-word32 m %s) %s)' % v for v in eq_vs]
 			ro_def = '(and %s)' % ' \n  '.join (eqs)
@@ -1708,7 +1710,7 @@ class Solver:
 			(_, _, p, pv) = pdata
 			impl_al = mk_implies (pv, mk_align_valid_ineq (typ, p))
 			self.assert_fact (impl_al, {})
-			for val in others:
+			for val in sorted (others, key=lambda x: x[1]):
 				kinds = [val[0][2], pdata[1]]
 				if ('PWeakValid' in kinds and
 						'PGlobalValid' not in kinds):
@@ -1922,14 +1924,14 @@ def merge_envs (envs, solv):
 	var_envs = {}
 	for (pc, env) in envs:
 		pc_str = smt_expr (pc, env, solv)
-		for (var, s) in env.iteritems ():
+		for (var, s) in sorted (env.iteritems ()):
 			var_envs.setdefault(var, {})
 			var_envs[var].setdefault(s, [])
 			var_envs[var][s].append (pc_str)
 
 	env = {}
-	for var in var_envs:
-		its = var_envs[var].items()
+	for var in sorted (var_envs):
+		its = sorted (var_envs[var].items())
 		(v, _) = its[-1]
 		for i in range(len(its) - 1):
 			(v2, pc_strs) = its[i]
@@ -1955,7 +1957,7 @@ def merge_envs_pcs (pc_envs, solv):
 	if pc_envs == []:
 		path_cond = false_term
 	else:
-		pcs = list (set ([pc for (pc, _) in pc_envs]))
+		pcs = list (OrderedDict.fromkeys ([pc for (pc, _) in pc_envs]))
 		path_cond = fold_assoc_balanced (mk_or, pcs)
 	env = merge_envs (pc_envs, solv)
 
