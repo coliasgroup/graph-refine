@@ -8,7 +8,8 @@ import json
 
 from solver import Solver, merge_envs_pcs, smt_expr, mk_smt_expr, to_smt_expr
 from syntax import (true_term, false_term, boolT, mk_and, mk_not, mk_implies,
-	builtinTs, word32T, word8T, foldr1, mk_eq, mk_plus, mk_word32, mk_var)
+	builtinTs, word32T, word8T, foldr1, mk_eq, mk_plus, mk_word32, mk_var,
+	fresh_name)
 import syntax
 import logic
 import solver
@@ -314,6 +315,7 @@ class GraphSlice:
 
 	def __init__ (self, p, solv, inliner = None, fast = False):
 		self.p = p
+		self.p_vs = dict(p.vs)
 		self.solv = solv
 		self.inp_envs = {}
 		self.mem_calls = {}
@@ -649,6 +651,10 @@ class GraphSlice:
 			else:
 				assert z == None
 
+	def p_fresh_var (self, name, typ):
+		name = fresh_name (name, self.p_vs, typ)
+		return mk_var (name, typ)
+
 	def emit_node (self, n):
 		(pc, env) = self.get_node_pc_env (n, request = False)
 		tag = self.p.node_tags[n[0]][0]
@@ -690,7 +696,7 @@ class GraphSlice:
 			return [(node.cont, pc, env)]
 		elif node.kind == 'Cond':
 			name = self.cond_name (n)
-			cond = self.p.fresh_var (name, boolT)
+			cond = self.p_fresh_var (name, boolT)
 			env[(cond.name, boolT)] = self.add_local_def (n,
 				'Cond', name, app_eqs (node.cond), env)
 			lpc = mk_and (cond, pc)
