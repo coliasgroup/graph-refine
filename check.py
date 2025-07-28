@@ -28,8 +28,8 @@ import syntax
 def build_problem (pairing, force_inline = None, avoid_abort = False, inline_scripts = None):
 	p = Problem (pairing)
 
-	for (tag, fname) in sorted (pairing.funs.items ()):
-		p.add_entry_function (functions[fname], tag)
+	for tag in pairing.tags:
+		p.add_entry_function (functions[pairing.funs[tag]], tag)
 
 	p.do_analysis ()
 
