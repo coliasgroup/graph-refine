@@ -1133,6 +1133,11 @@ class GraphSlice:
 				self.interpret_hyp (hyp))
 			for (hyps, hyp) in imps]))
 
+		reqs = list (self.pc_env_requests)
+		last_test[0] = (self.interpret_hyp (hyp), hyps, reqs)
+
+		self.solv.add_pvalid_dom_assertions ()
+
 		if save_smt_proof_checks[0]:
 			save_imps = [
 				{ 'meta': None, 'term': smt_expr(hyp_, {}, self.solv) }
@@ -1144,10 +1149,6 @@ class GraphSlice:
 			}
 			save = save_smt_proof_checks[0]
 			save (self.p, obj)
-
-		reqs = list (self.pc_env_requests)
-		last_test[0] = (self.interpret_hyp (hyp), hyps, reqs)
-		self.solv.add_pvalid_dom_assertions ()
 
 		if hack_skip_smt_proof_checks[0]:
 			trace ('!!! Skipping SMT proof check (trace)')
