@@ -1093,6 +1093,7 @@ class GraphSlice:
 			model = None):
 		self.avail_hyps = set (hyps)
 		if not self.used_hyps <= self.avail_hyps:
+			assert False
 			self.rebuild ()
 
 		last_test[0] = (hyp, hyps, list (self.pc_env_requests))
