@@ -115,7 +115,7 @@ def inline_reachable_unmatched (p, inline_tag, compare_tag,
 			heads = problem.loop_heads_including_inner (p)
 			limits = [(n, opts) for n in heads]
 
-			for n in p.nodes.keys ():
+			for n in sorted (p.nodes.keys ()):
 				try:
 					r = rep.get_node_pc_env ((n, limits))
 				except rep.TooGeneral:
