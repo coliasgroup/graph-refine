@@ -1194,6 +1194,13 @@ def compute_stack_bounds (quiet = False):
 		asm_fs = get_functions_with_tag ('ASM')
 		printout ('Computed recursion limits.')
 
+		printout ('idents:')
+		for (k, v) in idents.iteritems():
+			printout (k + ' -> ' + repr(v))
+		printout ('asm_idents:')
+		for (k, v) in asm_idents.iteritems():
+			printout (k + ' -> ' + repr(v))
+
 		bounds = compute_asm_stack_bounds (asm_idents, asm_fs)
 		printout ('Computed stack bounds.')
 	except Exception, e:
