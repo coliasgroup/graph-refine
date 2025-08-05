@@ -860,7 +860,7 @@ def compute_recursion_idents (group, extra_unfolds):
 	group = set (group)
 	recursion_trace.append ('Computing for group %s' % group)
 	printout ('Doing recursion analysis for function group:')
-	printout ('  %s' % list(group))
+	printout ('  %s' % list(sorted(group)))
 	prevs = set ([f for f in functions
 		if [f2 for f2 in functions[f].function_calls () if f2 in group]])
 	for f in prevs - group:
