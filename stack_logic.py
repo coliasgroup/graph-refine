@@ -858,13 +858,13 @@ def get_recursion_identifiers (funs, extra_unfolds = []):
 def compute_recursion_idents (group, extra_unfolds):
 	idents = {}
 	group = set (group)
-	recursion_trace.append ('Computing for group %s' % group)
+	printout ('Computing for group %s' % group)
 	printout ('Doing recursion analysis for function group:')
 	printout ('  %s' % list(sorted(group)))
 	prevs = set ([f for f in functions
 		if [f2 for f2 in functions[f].function_calls () if f2 in group]])
 	for f in prevs - group:
-		recursion_trace.append ('  checking for %s' % f)
+		printout ('  checking for %s' % f)
 		trace ('Checking idents for %s' % f)
 		while add_recursion_ident (f, group, idents, extra_unfolds):
 			pass
@@ -900,7 +900,7 @@ def add_recursion_ident (f, group, idents, extra_unfolds):
 		assns += function_link_assns (p, res, tag)
 	if chain == []:
 		return None
-	recursion_trace.append ('  created fun chain %s' % chain)
+	printout ('  created fun chain %s' % chain)
 	word_args = [(i, mk_var (s, typ))
 		for (i, (s, typ)) in enumerate (args)
 		if typ.kind == 'Word']
@@ -914,16 +914,16 @@ def add_recursion_ident (f, group, idents, extra_unfolds):
 	if find_unknown_recursion (p, group, idents, tag, [], []) == None:
 		idents.setdefault (fname, [])
 		idents[fname].append (syntax.true_term)
-		recursion_trace.append ('      found final ident for %s' % fname)
+		printout ('      found final ident for %s' % fname)
 		return syntax.true_term
 	assert word_args
-	recursion_trace.append ('      scanning for ident for %s' % fname)
+	printout ('      scanning for ident for %s' % fname)
 	for (i, arg) in word_args:
 		(nm, typ) = functions[fname].inputs[i]
 		arg_smt = solver.to_smt_expr (arg, env, rep.solv)
 		val = search.eval_model_expr (m, rep.solv, arg_smt)
 		if not rep.test_hyp_whyps (mk_eq (arg_smt, val), assns):
-			recursion_trace.append ('      discarded %s = 0x%x, not stable' % (nm, val.val))
+			printout ('      discarded %s = 0x%x, not stable' % (nm, val.val))
 			continue
 		entry_vis = ((entry, ()), tag)
 		ass = rep_graph.eq_hyp ((arg, entry_vis), (val, entry_vis))
@@ -931,12 +931,12 @@ def add_recursion_ident (f, group, idents, extra_unfolds):
 				assns + [ass], [])
 		if res:
 			fname2 = p.nodes[res].fname
-			recursion_trace.append ('      discarded %s, allows recursion to %s' % (nm, fname2))
+			printout ('      discarded %s, allows recursion to %s' % (nm, fname2))
 			continue
 		eq = syntax.mk_eq (mk_var (nm, typ), val)
 		idents.setdefault (fname, [])
 		idents[fname].append (eq)
-		recursion_trace.append ('    found ident for %s: %s' % (fname, eq))
+		printout ('    found ident for %s: %s' % (fname, eq))
 		return eq
 	assert not "identifying assertion found"
 
