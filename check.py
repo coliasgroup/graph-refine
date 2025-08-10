@@ -784,7 +784,7 @@ def failed_test_sets (p, checks):
 	return failed
 
 save_proof_checks = [None]
-save_checked_proofs = [None]
+save_checked_proof_scripts = [None]
 
 def check_proof (p, proof, use_rep = None):
 	checks = proof_checks (p, proof)
@@ -810,8 +810,8 @@ def check_proof (p, proof, use_rep = None):
 		trace ('%s: proof failed!' % name)
 		trace ('  (failure kind: %r)' % detail[0])
 		return False
-	if save_checked_proofs[0]:
-		save = save_checked_proofs[0]
+	if save_checked_proof_scripts[0]:
+		save = save_checked_proof_scripts[0]
 		save (p, proof)
 	return True
 
@@ -944,8 +944,8 @@ def check_proof_report (p, proof, do_check = True):
 		save = save_proof_checks[0]
 		save (p, checks)
 	res = bool (res)
-	if res and save_checked_proofs[0]:
-		save = save_checked_proofs[0]
+	if res and save_checked_proof_scripts[0]:
+		save = save_checked_proof_scripts[0]
 		save (p, proof)
 	return res
 
@@ -977,7 +977,7 @@ def save_proof_checks_to_file (fname):
 
 	return (save, finalise)
 
-def save_proofs_to_file (fname):
+def save_proof_scripts_to_file (fname):
 
 	def serialise_proof (p, proof):
 		return serialisation_helper (lambda ss: proof.serialise (p, ss))

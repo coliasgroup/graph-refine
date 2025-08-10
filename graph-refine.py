@@ -360,10 +360,10 @@ def main (args):
 				(save, finalise) = rep_graph.save_smt_proof_checks_to_file (fname)
 				rep_graph.save_smt_proof_checks[0] = save
 				finalisers.append (finalise)
-			elif arg.startswith('save-proofs:'):
-				fname = arg[len ('save-proofs:') :]
-				(save, finalise) = check.save_proofs_to_file (fname)
-				check.save_checked_proofs[0] = save
+			elif arg.startswith('save-proof-scripts:'):
+				fname = arg[len ('save-proof-scripts:') :]
+				(save, finalise) = check.save_proof_scripts_to_file (fname)
+				check.save_checked_proof_scripts[0] = save
 				finalisers.append (finalise)
 			elif arg == '-only-build-problem':
 				only_build_problem_for_pairs = True
