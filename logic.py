@@ -1323,7 +1323,7 @@ def tarjan (graph, entries):
 	for v in entries:
 		assert v not in data
 		tarjan1 (graph, v, data, [], set ([]), comps)
-	return comps
+	return sorted (comps)
 
 def tarjan1 (graph, v, data, stack, stack_set, comps):
 	vs = []
