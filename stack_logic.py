@@ -67,8 +67,8 @@ def split_sum_s_expr (expr, solv, extra_defs, typ):
 def split_merge_ite_sum_sexpr (expr, solv, extra_defs, typ):
 	def rec (expr):
 		return split_sum_s_expr (expr, solv, extra_defs, typ)
-	if sexpr[0] == 'ite':
-		(_, cond, x, y) = sexpr
+	if expr[0] == 'ite':
+		(_, cond, x, y) = expr
 		(s0, s1) = [solver.smt_num_t (n, typ) for n in [0, 1]]
 		if y != s0:
 			expr = ('bvadd', ('ite', cond, ('bvsub', x, y), s0), y)
@@ -160,7 +160,16 @@ def offs_expr_const (addr_expr, sp_expr, rep, hyps, extra_defs = {},
 				cache = cache, extra_defs = extra_defs), n)
 			for (x, n) in vs]
 		if sorted (vs) == sorted (start_vs):
-			# vs = split_merge_ite_sum_sexpr (vs)
+			new_vs = {}
+			for (x, mult) in vs:
+				(var, c) = split_merge_ite_sum_sexpr (x, rep.solv, extra_defs,
+					typ = typ)
+				for v in var:
+					new_vs.setdefault (v, 0)
+					new_vs[v] += var[v] * mult
+				const += c * mult
+			vs = [(x, n) for (x, n) in new_vs.iteritems ()
+				if n % (2 ** typ.num) != 0]
 			pass
 		if sorted (vs) == sorted (start_vs):
 			print ('offs_expr_const: not const')
