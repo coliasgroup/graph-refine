@@ -1982,13 +1982,16 @@ paren_re = re.compile (r"(\(|\))")
 def parse_s_expressions (ss):
 	bits = [bit for s in ss for split1 in paren_re.split (s)
 		for bit in split1.split ()]
-	def group (n):
+	def group (n, depth = 0):
+		if depth > 300:
+			print ss
+			assert False
 		if bits[n] != '(':
 			return (n + 1, bits[n])
 		xs = []
 		n = n + 1
 		while bits[n] != ')':
-			(n, x) = group (n)
+			(n, x) = group (n, depth = depth + 1)
 			xs.append (x)
 		return (n + 1, tuple (xs))
 	(n, v) = group (0)

@@ -44,6 +44,7 @@ def toplevel_check (pair, check_loops = True, report = False, count = None,
 		(i, n) = count
 		printout ('  (function pairing %d of %d)' % (i + 1, n))
 
+	print ("XXX yA")
 	for (tag, fname) in pair.funs.iteritems ():
 		if not functions[fname].entry:
 			printout ('Skipping %s, underspecified %s' % (pair, tag))
@@ -54,12 +55,19 @@ def toplevel_check (pair, check_loops = True, report = False, count = None,
 
 	exception = None
 
+	print ("XXX yB")
 	trace (time.asctime ())
 	start_time = time.time()
 	sys.stdout.flush ()
 	try:
+		print ("XXX A")
+		sys.stdout.flush ()
 		inline_scripts = loaded_inline_scripts.get(problem.Problem(pair).name)
+		print ("XXX B")
+		sys.stdout.flush ()
 		p = check.build_problem (pair, inline_scripts=inline_scripts)
+		print ("XXX C")
+		sys.stdout.flush ()
 		if only_build_problem:
 			tracer[0] = prev_tracer
 			return 'True'
