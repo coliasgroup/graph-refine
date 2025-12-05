@@ -86,8 +86,6 @@ def simplify_expr_whyps (sexpr, rep, hyps, cache = None, extra_defs = {},
 		bool_hyps = None):
 	ret = simplify_expr_whyps_ (sexpr, rep, hyps, cache, extra_defs,
 		bool_hyps)
-	print ("simplify_expr_whyps() inp:", sexpr)
-	print ("simplify_expr_whyps() ret:  ", ret)
 	return ret
 
 def simplify_expr_whyps_ (sexpr, rep, hyps, cache = None, extra_defs = {},
