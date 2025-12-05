@@ -816,10 +816,16 @@ def compute_immediate_stack_bounds (idents, names):
 last_immediate_stack_bounds = [0]
 
 def immediate_stack_bounds_loop (immed):
+	# print "X >>>"
+	# for k, (x, vals) in immed:
+	# 	if vals:
+	# 		print (k, (x, vals))
+	# print "<<< X"
 	graph = dict ([(k, immed[k][1].keys ()) for k in immed])
 	graph['ENTRY'] = list (immed)
 	comps = logic.tarjan (graph, ['ENTRY'])
 	rec_comps = [[x] + y for (x, y) in comps if y]
+	# print ("rec_comps", rec_comps)
 	return rec_comps
 
 def compute_recursive_stack_bounds (immed):
