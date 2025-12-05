@@ -218,7 +218,9 @@ def get_ptr_offsets (p, n_ptrs, bases, hyps = [], cache = None,
 				offs.append ((v, off, k))
 				break
 		if off == None:
-			trace ('get_ptr_offs fallthrough at %d: %s' % v)
+			print ('get_ptr_offs fallthrough at %d: %s' % v)
+			print ('bases: ' + repr(bases))
+			print ('n_ptrs: ' + repr(n_ptrs))
 			trace (str ([hyp] + hyps))
 			assert not fail_early, (v, ptr)
 	return offs
