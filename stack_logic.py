@@ -238,8 +238,6 @@ def get_ptr_offsets (p, n_ptrs, bases, hyps = [], cache = None,
 	for t in tags:
 		ex_defs.update (get_extra_sp_defs (rep, t))
 
-	print ("ex_defs", ex_defs)
-
 	offs = []
 	for (v, ptr, hyp) in smt_ptrs:
 		off = None
