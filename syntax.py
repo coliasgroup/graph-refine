@@ -546,7 +546,7 @@ class Expr:
 			xs.append (''.join(['%02x' % ord(c) for c in repr(self.val)]))
 			self.typ.serialise (xs)
 		else:
-			print ("not ser", self.kind)
+			print ("not ser", self.kind, self.name)
 			assert not 'expr serialisable', self.kind
 
 class Struct:
