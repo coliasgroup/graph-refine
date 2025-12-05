@@ -64,19 +64,33 @@ def split_sum_s_expr (expr, solv, extra_defs, typ):
 	else:
 		return ({expr: 1}, 0)
 
-def split_merge_ite_sum_sexpr (foo):
-	(s0, s1) = [solver.smt_num_t (n, typ) for n in [0, 1]]
-	if y != s0:
-		expr = ('bvadd', ('ite', cond, ('bvsub', x, y), s0), y)
-		return rec (expr)
-	(xvar, xconst) = rec (x)
-	var = dict ([(('ite', cond, v, s0), n)
-		for (v, n) in xvar.iteritems ()])
-	var.setdefault (('ite', cond, s1, s0), 0)
-	var[('ite', cond, s1, s0)] += xconst
-	return (var, 0)
+def split_merge_ite_sum_sexpr (expr, solv, extra_defs, typ):
+	def rec (expr):
+		return split_sum_s_expr (expr, solv, extra_defs, typ)
+	if sexpr[0] == 'ite':
+		(_, cond, x, y) = sexpr
+		(s0, s1) = [solver.smt_num_t (n, typ) for n in [0, 1]]
+		if y != s0:
+			expr = ('bvadd', ('ite', cond, ('bvsub', x, y), s0), y)
+			return rec (expr)
+		(xvar, xconst) = rec (x)
+		var = dict ([(('ite', cond, v, s0), n)
+			for (v, n) in xvar.iteritems ()])
+		var.setdefault (('ite', cond, s1, s0), 0)
+		var[('ite', cond, s1, s0)] += xconst
+		return (var, 0)
+	else:
+		return ({expr: 1}, 0)
 
 def simplify_expr_whyps (sexpr, rep, hyps, cache = None, extra_defs = {},
+		bool_hyps = None):
+	ret = simplify_expr_whyps_ (sexpr, rep, hyps, cache, extra_defs,
+		bool_hyps)
+	print ("simplify_expr_whyps() inp:", sexpr)
+	print ("simplify_expr_whyps() ret:  ", ret)
+	return ret
+
+def simplify_expr_whyps_ (sexpr, rep, hyps, cache = None, extra_defs = {},
 		bool_hyps = None):
 	if cache == None:
 		cache = {}
@@ -86,6 +100,15 @@ def simplify_expr_whyps (sexpr, rep, hyps, cache = None, extra_defs = {},
 		sexpr = extra_defs[sexpr]
 	if sexpr in rep.solv.defs:
 		sexpr = rep.solv.defs[sexpr]
+	# if sexpr[0] == 'bvadd':
+	# 	(_, x, y) = sexpr
+	# 	x = simplify_expr_whyps (x, rep, hyps, cache = cache,
+	# 		extra_defs = extra_defs,
+	# 		bool_hyps = bool_hyps)
+	# 	y = simplify_expr_whyps (y, rep, hyps, cache = cache,
+	# 		extra_defs = extra_defs,
+	# 		bool_hyps = bool_hyps)
+	# 	return ('bvadd', x, y)
 	if sexpr[0] == 'ite':
 		(_, cond, x, y) = sexpr
 		cond_exp = solver.mk_smt_expr (solver.flat_s_expression (cond),
@@ -137,12 +160,13 @@ def offs_expr_const (addr_expr, sp_expr, rep, hyps, extra_defs = {},
 				cache = cache, extra_defs = extra_defs), n)
 			for (x, n) in vs]
 		if sorted (vs) == sorted (start_vs):
-			pass # vs = split_merge_ite_sum_sexpr (vs)
+			# vs = split_merge_ite_sum_sexpr (vs)
+			pass
 		if sorted (vs) == sorted (start_vs):
-			trace ('offs_expr_const: not const')
-			trace ('%s - %s' % (addr_expr, sp_expr))
-			trace (str (vs))
-			trace (str (hyps))
+			print ('offs_expr_const: not const')
+			print ('%s - %s' % (addr_expr, sp_expr))
+			print (str (vs))
+			print (str (hyps))
 			last_10_non_const.append ((addr_expr, sp_expr, vs, hyps))
 			del last_10_non_const[:-10]
 			return None
@@ -207,6 +231,8 @@ def get_ptr_offsets (p, n_ptrs, bases, hyps = [], cache = None,
 	for t in tags:
 		ex_defs.update (get_extra_sp_defs (rep, t))
 
+	print ("ex_defs", ex_defs)
+
 	offs = []
 	for (v, ptr, hyp) in smt_ptrs:
 		off = None
@@ -222,6 +248,9 @@ def get_ptr_offsets (p, n_ptrs, bases, hyps = [], cache = None,
 			print ('bases: ' + repr(bases))
 			print ('n_ptrs: ' + repr(n_ptrs))
 			trace (str ([hyp] + hyps))
+			ss = p.serialise ()
+			for s in ss:
+				print s
 			assert not fail_early, (v, ptr)
 	return offs
 
