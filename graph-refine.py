@@ -37,7 +37,8 @@ if __name__ == '__main__':
 
 def toplevel_check (pair, check_loops = True, report = False, count = None,
 		only_build_problem = False):
-	if not only_build_problem:
+	# if not only_build_problem:
+	if True:
 		printout ('Testing Function pair %s' % pair)
 	if count and not only_build_problem:
 		(i, n) = count
