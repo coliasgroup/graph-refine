@@ -631,11 +631,22 @@ def inline_no_pre_pairing (p):
 
 last_asm_stack_depth_fun = [0]
 
+noreturn_asm_fnames = frozenset ([
+	'halt',
+])
+
+def cut_noreturn_call_conts (p):
+	for n in p.nodes:
+		node = p.nodes[n]
+		if node.kind == 'Call' and node.fname in noreturn_asm_fnames and node.cont != 'Err':
+			p.nodes[n] = syntax.Node ('Call', 'Err', (node.fname, node.args, node.rets))
+
 def check_before_guess_asm_stack_depth (fun):
 	from solver import smt_expr
 	if not fun.entry:
 		return None
 	p = fun.as_problem (problem.Problem, name = 'Target')
+	cut_noreturn_call_conts (p)
 	try:
 		p.do_analysis ()
 		p.check_no_inner_loops ()
