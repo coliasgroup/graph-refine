@@ -64,19 +64,31 @@ def split_sum_s_expr (expr, solv, extra_defs, typ):
 	else:
 		return ({expr: 1}, 0)
 
-def split_merge_ite_sum_sexpr (foo):
-	(s0, s1) = [solver.smt_num_t (n, typ) for n in [0, 1]]
-	if y != s0:
-		expr = ('bvadd', ('ite', cond, ('bvsub', x, y), s0), y)
-		return rec (expr)
-	(xvar, xconst) = rec (x)
-	var = dict ([(('ite', cond, v, s0), n)
-		for (v, n) in xvar.iteritems ()])
-	var.setdefault (('ite', cond, s1, s0), 0)
-	var[('ite', cond, s1, s0)] += xconst
-	return (var, 0)
+def split_merge_ite_sum_sexpr (expr, solv, extra_defs, typ):
+	def rec (expr):
+		return split_sum_s_expr (expr, solv, extra_defs, typ)
+	if expr[0] == 'ite':
+		(_, cond, x, y) = expr
+		(s0, s1) = [solver.smt_num_t (n, typ) for n in [0, 1]]
+		if y != s0:
+			expr = ('bvadd', ('ite', cond, ('bvsub', x, y), s0), y)
+			return rec (expr)
+		(xvar, xconst) = rec (x)
+		var = dict ([(('ite', cond, v, s0), n)
+			for (v, n) in xvar.iteritems ()])
+		var.setdefault (('ite', cond, s1, s0), 0)
+		var[('ite', cond, s1, s0)] += xconst
+		return (var, 0)
+	else:
+		return ({expr: 1}, 0)
 
 def simplify_expr_whyps (sexpr, rep, hyps, cache = None, extra_defs = {},
+		bool_hyps = None):
+	ret = simplify_expr_whyps_ (sexpr, rep, hyps, cache, extra_defs,
+		bool_hyps)
+	return ret
+
+def simplify_expr_whyps_ (sexpr, rep, hyps, cache = None, extra_defs = {},
 		bool_hyps = None):
 	if cache == None:
 		cache = {}
@@ -137,7 +149,16 @@ def offs_expr_const (addr_expr, sp_expr, rep, hyps, extra_defs = {},
 				cache = cache, extra_defs = extra_defs), n)
 			for (x, n) in vs]
 		if sorted (vs) == sorted (start_vs):
-			pass # vs = split_merge_ite_sum_sexpr (vs)
+			new_vs = {}
+			for (x, mult) in vs:
+				(var, c) = split_merge_ite_sum_sexpr (x, rep.solv, extra_defs,
+					typ = typ)
+				for v in var:
+					new_vs.setdefault (v, 0)
+					new_vs[v] += var[v] * mult
+				const += c * mult
+			vs = [(x, n) for (x, n) in new_vs.iteritems ()
+				if n % (2 ** typ.num) != 0]
 		if sorted (vs) == sorted (start_vs):
 			trace ('offs_expr_const: not const')
 			trace ('%s - %s' % (addr_expr, sp_expr))
