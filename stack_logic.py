@@ -98,6 +98,15 @@ def simplify_expr_whyps_ (sexpr, rep, hyps, cache = None, extra_defs = {},
 		sexpr = extra_defs[sexpr]
 	if sexpr in rep.solv.defs:
 		sexpr = rep.solv.defs[sexpr]
+	# if sexpr[0] == 'bvadd':
+	# 	(_, x, y) = sexpr
+	# 	x = simplify_expr_whyps (x, rep, hyps, cache = cache,
+	# 		extra_defs = extra_defs,
+	# 		bool_hyps = bool_hyps)
+	# 	y = simplify_expr_whyps (y, rep, hyps, cache = cache,
+	# 		extra_defs = extra_defs,
+	# 		bool_hyps = bool_hyps)
+	# 	return ('bvadd', x, y)
 	if sexpr[0] == 'ite':
 		(_, cond, x, y) = sexpr
 		cond_exp = solver.mk_smt_expr (solver.flat_s_expression (cond),
