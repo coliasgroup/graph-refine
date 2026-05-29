@@ -51,8 +51,9 @@ def build_rodata (rodata_stream, rodata_ranges = [('Section', '.rodata')]):
 	act_rodata_ranges = []
 	for (kind, nm) in rodata_ranges:
 		if kind == 'Symbol':
-			(addr, size, _) = symbols[nm]
-			act_rodata_ranges.append ((addr, addr + size - 1))
+			if nm in symbols:
+				(addr, size, _) = symbols[nm]
+				act_rodata_ranges.append ((addr, addr + size - 1))
 		elif kind == 'Section':
 			if nm in sections:
 				act_rodata_ranges.append (sections[nm])
