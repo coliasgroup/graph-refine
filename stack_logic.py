@@ -625,7 +625,7 @@ def loop_var_analysis (p, split):
 		else:
 			va2.append ((v, data))
 	stack_const = stack
-	for (k, off) in uoffs:
+	for (k, off) in sorted (uoffs):
 		stack_const = syntax.mk_memupd (stack_const,
 			loc_offs (split, 'Ptr', off, k),
 			syntax.mk_word32 (0))

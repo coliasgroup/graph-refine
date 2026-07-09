@@ -615,7 +615,7 @@ def get_model_trace (knowledge, m, v):
 	return tuple (trace)
 
 def split_group (knowledge, m, group):
-	group = list (set (group))
+	group = sorted (set (group))
 	if group[0][0][0].typ == syntax.builtinTs['Mem']:
 		bins = []
 		for (v, const) in group:

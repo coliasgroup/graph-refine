@@ -910,7 +910,7 @@ def compute_loop_var_analysis (p, var_deps, n, override_nodes = None):
 	vca = compute_var_cycle_analysis (p, nodes, n,
 		const_vs, set (var_deps[n]))
 	vca = [(syntax.mk_var (nm, typ), data)
-		for ((nm, typ), data) in vca.items ()]
+		for ((nm, typ), data) in sorted (vca.items ())]
 	return vca
 
 cvca_trace = []

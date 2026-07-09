@@ -189,7 +189,7 @@ def get_linear_series_eqs (p, split, restrs, hyps, omit_standard = False):
     if k in p.cached_analysis:
         if omit_standard:
           standard = set (search.mk_seq_eqs (p, split, 1, with_rodata = False))
-          return set (p.cached_analysis[k]) - standard
+          return sorted (set (p.cached_analysis[k]) - standard)
         return p.cached_analysis[k]
 
     cands = search.mk_seq_eqs (p, split, 1, with_rodata = False)
@@ -227,7 +227,7 @@ def get_linear_series_eqs (p, split, restrs, hyps, omit_standard = False):
     p.cached_analysis[k] = eqs
     if omit_standard:
       standard = set (search.mk_seq_eqs (p, split, 1, with_rodata = False))
-      return set (eqs) - standard
+      return sorted (set (eqs) - standard)
     return eqs
 
 def get_linear_series_hyps (p, split, restrs, hyps):

@@ -463,7 +463,7 @@ def loops_to_split (p, restrs):
 			rem_loop_heads = [lh for lh in rem_loop_heads
 				if p.is_reachable_from (n, lh)
 				or p.node_tags[n][0] != p.node_tags[lh][0]]
-	return rem_loop_heads
+	return sorted (rem_loop_heads)
 
 def restr_others (p, restrs, n):
 	extras = [(sp, vc_upto (n)) for sp in sorted (loops_to_split (p, restrs))]
