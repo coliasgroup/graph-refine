@@ -380,7 +380,9 @@ def get_entry_visits_up_to (rep, head, restrs, hyps):
 	if k in rep.p.cached_analysis:
 		return rep.p.cached_analysis[k]
 
-	[entry] = get_loop_entry_sites (rep, restrs, hyps, head)
+	[entry] = [n for n2 in rep.p.loop_body (head)
+		for n in rep.p.preds[n2]
+		if rep.p.loop_id (n) == None]
 	frontier = set ([entry])
 	up_to = set ()
 	loop = rep.p.loop_body (head)
