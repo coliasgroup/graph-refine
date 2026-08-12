@@ -124,7 +124,7 @@ class Problem:
 		return e
 
 	def tags (self):
-		return self.outputs.keys ()
+		return sorted (self.outputs.keys ())
 
 	def entry_exit_renames (self, tags = None):
 		"""computes the rename set of a function's formal parameters
@@ -164,7 +164,10 @@ class Problem:
 			for n in node_subset])
 
 	def do_loop_analysis (self):
-		entries = [e for (e, tag, nm, args) in self.entries]
+		entries = [e
+			for tag in self.tags ()
+			for (e, t, nm, args) in self.entries
+			if t == tag]
 		self.loop_data = {}
 
 		graph = self.mk_node_graph ()
@@ -395,10 +398,13 @@ class Problem:
 	def pad_merge_points (self):
 		self.compute_preds ()
 
-		arcs = [(pred, n) for n in sorted (self.preds)
+		arcs = [(pred, n)
+			for tag in self.tags ()
+			for n in sorted (self.preds)
 			if len (self.preds[n]) > 1
 			if n in self.nodes
 			for pred in sorted (self.preds[n])
+			if self.node_tags[pred][0] == tag
 			if (self.nodes[pred].kind != 'Basic'
 				or self.nodes[pred].upds != [])]
 
