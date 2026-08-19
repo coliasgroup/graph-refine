@@ -353,6 +353,8 @@ def main (args):
 				finalisers.append (finalise)
 			elif arg == 'hack-skip-smt-proof-checks':
 				rep_graph.hack_skip_smt_proof_checks[0] = True
+			elif arg == 'debug-failed-check-model':
+				check.debug_failed_check_model[0] = True
 			elif arg == 'hack-offline-solvers-only':
 				solver.hack_offline_solvers_only[0] = True
 			elif arg.startswith('save-smt-proof-checks:'):
