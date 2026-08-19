@@ -931,6 +931,11 @@ def check_proof_report_rec (p, restrs, hyps, proof, step_num, ctxt, inducts,
 							if m:
 								import debug
 								debug.trace_model (rep, m)
+								for i in range (15):
+									printout ('trace of r%d (ASM):' % i)
+									debug.trace_var (rep, 'ASM', m,
+										syntax.mk_var ('r%d' % i,
+											syntax.word32T))
 						except Exception, e:
 							printout ('      (model debug failed: %r)' % e)
 				return

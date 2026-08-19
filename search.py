@@ -110,6 +110,8 @@ def find_split_limit (p, n, restrs, hyps, kind, bound = 51, must_find = True,
 	if bound == None:
 		trace ('No split limit found for %d (%s).' % (n, tag))
 		if must_find:
+			printout ('No %s split limit found for %d (%s)'
+				% (kind, n, p.node_tags[n], ))
 			assert not 'split limit found'
 	return bound
 
@@ -733,6 +735,10 @@ def find_split_loop_inner (p, head, restrs, hyps, unfold_limit = 9,
 
 	if ind_fails:
 		trace ('Warning: inductive failures: %s' % ind_fails)
+	printout ('No split found for loop at %d (%s)'
+		% (head, p.node_tags[head], ))
+	for fail in ind_fails[:10]:
+		printout ('  inductive failure: %s' % (fail, ))
 	raise NoSplit ()
 
 def default_i_j_opts (unfold_limit = 9):
@@ -1241,6 +1247,17 @@ def get_new_extra_linear_seq_eqs (p, restrs, l_split, l_step):
 
 def trace_search_fail (knowledge):
 	trace (('Exhausted split candidates for %s' % knowledge.name))
+	p = knowledge.rep.p
+	def pt_str ((n, start, step)):
+		return '(%d%s, %d, %d)' % (n, p.node_tags[n][1:2], start, step)
+	printout ('Exhausted split candidates for %s:' % knowledge.name)
+	for (pair, res) in sorted (knowledge.pairs.items ())[:40]:
+		(l_pt, r_pt) = pair
+		printout ('  %s vs %s: %s' % (pt_str (l_pt), pt_str (r_pt),
+			str (res)[:200]))
+	if len (knowledge.pairs) > 40:
+		printout ('  ... and %d more pairs'
+			% (len (knowledge.pairs) - 40))
 	fails = [it for it in knowledge.pairs.items ()
 		if it[1][0] == 'Failed']
 	last_failed_pairings.append (fails)
