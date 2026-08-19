@@ -201,6 +201,15 @@ def mk_fun_eqs_CPU (cpu_f, c_f, cpu_name, funcall_depth = 1):
 	return cpu (var_c_args, var_c_rets, c_imem, c_omem,
 		(funcall_depth * 256) + 256)
 
+# whether the asm loop variable analysis should propose constancy of
+# concretely-addressed global memory cells as loop invariants. these are
+# verified by the split checks; the split search retries with this
+# disabled if no split can be found with them. off by default: the
+# extra invariants poison split searches in some functions, causing
+# expensive retries (~40x slowdown seen on doNormalTransfer) without
+# yet fixing its remaining check failure.
+aggressive_cell_invariants = [False]
+
 class Pairing:
 	def __init__ (self, tags, funs, eqs, notes = None):
 		[l_tag, r_tag] = tags

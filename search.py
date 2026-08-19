@@ -666,7 +666,38 @@ def eq_known (knowledge, vpair):
 	preds = expand_var_eqs (knowledge, vpair)
 	return set (preds) <= knowledge.facts
 
+def purge_loop_var_analysis_caches (p):
+	for k in p.cached_analysis.keys ():
+		if k[0] in ['search_loop_var_analysis',
+				'loop_stack_virtual_var_cycle_analysis']:
+			del p.cached_analysis[k]
+
 def find_split_loop (p, head, restrs, hyps, unfold_limit = 9,
+		node_restrs = None, trace_ind_fails = None):
+	try:
+		return find_split_loop_inner (p, head, restrs, hyps,
+			unfold_limit = unfold_limit,
+			node_restrs = node_restrs,
+			trace_ind_fails = trace_ind_fails)
+	except NoSplit:
+		if not logic.aggressive_cell_invariants[0]:
+			raise
+		# the guessed global-cell invariants may have poisoned the
+		# split candidates. retry without them.
+		printout ('Retrying split search at %d without cell invariants.'
+			% head)
+		logic.aggressive_cell_invariants[0] = False
+		purge_loop_var_analysis_caches (p)
+		try:
+			return find_split_loop_inner (p, head, restrs, hyps,
+				unfold_limit = unfold_limit,
+				node_restrs = node_restrs,
+				trace_ind_fails = trace_ind_fails)
+		finally:
+			logic.aggressive_cell_invariants[0] = True
+			purge_loop_var_analysis_caches (p)
+
+def find_split_loop_inner (p, head, restrs, hyps, unfold_limit = 9,
 		node_restrs = None, trace_ind_fails = None):
 	assert p.loop_data[head][0] == 'Head'
 	assert p.node_tags[head][0] == p.pairing.tags[0]

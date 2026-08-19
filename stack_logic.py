@@ -588,6 +588,98 @@ def norm_int (n, radix):
 	else:
 		return n
 
+def eval_const_word_expr (expr):
+	"""evaluate a constant word expression, or return None."""
+	if expr.kind == 'Num':
+		return expr.val & 0xffffffff
+	if expr.kind != 'Op':
+		return None
+	vs = [eval_const_word_expr (v) for v in expr.vals]
+	if None in vs:
+		return None
+	if expr.name == 'Plus':
+		return (vs[0] + vs[1]) & 0xffffffff
+	elif expr.name == 'Minus':
+		return (vs[0] - vs[1]) & 0xffffffff
+	elif expr.name == 'BWOr':
+		return vs[0] | vs[1]
+	elif expr.name == 'BWAnd':
+		return vs[0] & vs[1]
+	elif expr.name == 'ShiftLeft':
+		return (vs[0] << (vs[1] & 31)) & 0xffffffff
+	elif expr.name == 'ShiftRight':
+		return vs[0] >> (vs[1] & 31)
+	return None
+
+def fold_const_addr (p, tag, n, addr):
+	"""try to evaluate addr (as of the state entering node n) to a
+	constant, by substituting back through straight-line Basic
+	predecessors (e.g. movw/movt constant setup sequences)."""
+	for i in range (32):
+		v = eval_const_word_expr (addr)
+		if v != None:
+			return v
+		ps = p.preds[n]
+		if len (ps) != 1:
+			return None
+		[n2] = ps
+		if p.node_tags[n2][0] != tag:
+			return None
+		node2 = p.nodes[n2]
+		if node2.kind == 'Basic':
+			substs = dict ([((nm, typ), val)
+				for ((nm, typ), val) in node2.upds])
+			addr = logic.var_subst (addr, substs,
+				must_subst = False)
+		elif node2.kind == 'Cond':
+			# guard conditions update nothing, walk through
+			pass
+		else:
+			return None
+		n = n2
+	return None
+
+def loop_global_cell_invariants (p, tag):
+	"""find memory cells read at (foldable) concrete addresses on this
+	side of the problem. proposing such a cell as a loop constant lets
+	proofs relate a pre-loop read of a global on one side to a
+	post-loop re-read of the same global on the other side, which
+	optimising compilers frequently split across a loop. these are
+	only informed guesses; they are verified as part of the split
+	checks, and the search retries without them if no split is found
+	(see find_split_loop)."""
+	k = ('loop_global_cell_invariants', tag)
+	if k in p.cached_analysis:
+		return p.cached_analysis[k]
+	cells = []
+	seen = set ()
+	for n in p.nodes:
+		if p.node_tags[n][0] != tag:
+			continue
+		node = p.nodes[n]
+		if node.kind != 'Basic':
+			continue
+		for (lv, val) in node.upds:
+			if not (val.is_op ('MemAcc')
+					and val.typ == syntax.word32T):
+				continue
+			[m, addr] = val.vals
+			if not (m.kind == 'Var' and m.name == 'mem'):
+				continue
+			if addr.kind != 'Num':
+				a = fold_const_addr (p, tag, n, addr)
+			else:
+				a = addr.val
+			if a == None or a in seen:
+				continue
+			seen.add (a)
+			cells.append (syntax.mk_memacc (m,
+				syntax.mk_word32 (a), syntax.word32T))
+	trace ('global cell invariant candidates (%s): %s'
+		% (tag, sorted ([hex (a) for a in seen])))
+	p.cached_analysis[k] = cells
+	return cells
+
 def loop_global_load_invariants (p, tag, va):
 	"""find memory cells which optimising compilers have implicitly
 	asserted loop-constant: when a register is constant through the
@@ -693,6 +785,12 @@ def loop_var_analysis (p, split):
 	va2.append ((stack_const, 'LoopConst'))
 
 	va2.extend (loop_global_load_invariants (p, tag, va2))
+
+	if logic.aggressive_cell_invariants[0]:
+		got = set ([str (v) for (v, data) in va2])
+		va2.extend ([(cell, 'LoopConst')
+			for cell in loop_global_cell_invariants (p, tag)
+			if str (cell) not in got])
 
 	p.cached_analysis[key] = va2
 	return va2
