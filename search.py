@@ -681,7 +681,11 @@ def find_split_loop (p, head, restrs, hyps, unfold_limit = 9,
 	if nec and nec[0] in ['CaseSplit', 'LoopUnroll']:
 		return nec
 	elif nec:
-		i_j_opts = nec
+		# the necessary options are informed guesses, not facts
+		# (e.g. a linear sequence relation may have been spotted
+		# against a loop on a mutually exclusive path), so fall
+		# back to the default options if they do not work out.
+		i_j_opts = nec + default_i_j_opts (unfold_limit)
 	else:
 		i_j_opts = default_i_j_opts (unfold_limit)
 
