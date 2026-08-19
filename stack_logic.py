@@ -588,6 +588,60 @@ def norm_int (n, radix):
 	else:
 		return n
 
+def loop_global_load_invariants (p, tag, va):
+	"""find memory cells which optimising compilers have implicitly
+	asserted loop-constant: when a register is constant through the
+	loop and its assignments (outside calls) all load the same
+	address, the compiler has hoisted a load of a global out of the
+	loop, which is only valid if the loop cannot write that address.
+	adding the cell itself as a loop-constant lets proofs connect the
+	cached register to fresh loads of the same global made elsewhere
+	(e.g. by the C side after the loop)."""
+	consts = set ([v.name for (v, data) in va
+		if data == 'LoopConst' if v.kind == 'Var'])
+	defs = {}
+	for n in p.nodes:
+		if p.node_tags[n][0] != tag:
+			continue
+		node = p.nodes[n]
+		if node.kind != 'Basic':
+			continue
+		for ((nm, _), val) in node.upds:
+			if nm not in consts:
+				continue
+			if (val.is_op ('MemAcc')
+					and val.vals[0].kind == 'Var'
+					and val.vals[0].name != 'mem'):
+				# register restore from a stack slot
+				# (e.g. an epilogue pop), not a value source
+				continue
+			defs.setdefault (nm, [])
+			defs[nm].append (val)
+	extra = []
+	seen = set ()
+	for nm in defs:
+		vals = defs[nm]
+		v = vals[0]
+		if [v2 for v2 in vals if v2 != v]:
+			continue
+		if not (v.is_op ('MemAcc') and v.typ == syntax.word32T):
+			continue
+		[m, addr] = v.vals
+		if not (m.kind == 'Var' and m.name == 'mem'):
+			continue
+		addr_vs = set ([nm2 for (nm2, _)
+			in syntax.get_expr_var_set (addr)])
+		if not addr_vs <= consts:
+			continue
+		k = str (addr)
+		if k in seen:
+			continue
+		seen.add (k)
+		trace ('%s: global load cached in %s, adding cell invariant'
+			% (v, nm))
+		extra.append ((v, 'LoopConst'))
+	return extra
+
 def loop_var_analysis (p, split):
 	"""computes the same loop dataflow analysis as in the 'logic' module
 	but with stack slots treated as virtual variables."""
@@ -637,6 +691,8 @@ def loop_var_analysis (p, split):
 		([], [0]))
 	
 	va2.append ((stack_const, 'LoopConst'))
+
+	va2.extend (loop_global_load_invariants (p, tag, va2))
 
 	p.cached_analysis[key] = va2
 	return va2
