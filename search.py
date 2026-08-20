@@ -716,9 +716,11 @@ def find_split_loop_inner (p, head, restrs, hyps, unfold_limit = 9,
 	elif nec:
 		# the necessary options are informed guesses, not facts
 		# (e.g. a linear sequence relation may have been spotted
-		# against a loop on a mutually exclusive path), so fall
-		# back to the default options if they do not work out.
-		i_j_opts = nec + default_i_j_opts (unfold_limit)
+		# against a loop on a mutually exclusive path), so also try
+		# the default options, and cap the guessed options' ladder
+		# of unfold limits, which can otherwise grind through many
+		# expensive fruitless search rounds.
+		i_j_opts = default_i_j_opts (unfold_limit) + nec[:6]
 	else:
 		i_j_opts = default_i_j_opts (unfold_limit)
 
