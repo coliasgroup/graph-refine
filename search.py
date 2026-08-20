@@ -354,6 +354,17 @@ def update_v_ids_for_model (knowledge, pairs, vs, m):
 			for x in xs:
 				vs[x] = (k_counter, const)
 			k_counter += 1
+	mem_t = syntax.builtinTs['Mem']
+	mem_vs = [(v, vs[v]) for v in vs if v[0].typ == mem_t]
+	if mem_vs:
+		trace ('mem var classes after model:')
+		for (v, (kid, const)) in sorted (mem_vs,
+				key = lambda x: (x[1][0], x[0][1:])):
+			(var, n, offs, step) = v
+			trace ('  class %d%s: %s @ (%d%s, %d, %d)'
+				% (kid, [' ', ' const'][const], var.name,
+				n, knowledge.rep.p.node_tags[n][1:2],
+				offs, step))
 	# then figure out which pairings are still viable
 	needed_ks = set ()
 	zero = syntax.mk_word32 (0)

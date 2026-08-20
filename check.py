@@ -572,8 +572,11 @@ def check_split_induct_step_group (rep, restrs, hyps, split, tags = None):
 		tags = tags)
 	groups = proof_check_groups (checks)
 	for group in groups:
-		(verdict, _) = test_hyp_group (rep, group)
+		(verdict, fail) = test_hyp_group (rep, group)
 		if not verdict:
+			if fail:
+				printout ('  split induct fail (%s): %s'
+					% (fail[2], str (fail[1])[:250]))
 			return False
 	return True
 
