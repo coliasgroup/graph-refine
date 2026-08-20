@@ -694,8 +694,9 @@ def addr_in_data_symbol (a):
 	to be a plain global variable cell. returns the symbol's address
 	range."""
 	from target_objects import symbols
+	data_sects = ['.bss', '.data', '.boot.bss', '.boot.data']
 	for (nm, (addr, size, sect)) in symbols.iteritems ():
-		if sect in ['.bss', '.data'] and addr <= a < addr + size:
+		if sect in data_sects and addr <= a < addr + size:
 			if nm in heap_hosting_globals:
 				return None
 			return (addr, addr + size - 1)
