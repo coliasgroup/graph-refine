@@ -804,7 +804,19 @@ def test_hyp_group (rep, group, detail = None):
 	names = set ([name for (_, _, name) in group])
 
 	trace ('Testing group of hyps: %s' % list (names), push = 1)
-	(res, i, res_kind) = rep.test_hyp_imps (imps)
+	try:
+		(res, i, res_kind) = rep.test_hyp_imps (imps)
+	except Exception:
+		printout ('Exception testing hyp group: %s' % list (names))
+		for (hyps, hyp, nm) in group[:20]:
+			try:
+				rep.interpret_hyp (hyp)
+				for hyp2 in hyps:
+					rep.interpret_hyp (hyp2)
+				printout ('  ok: %s: %r' % (nm, hyp))
+			except Exception:
+				printout ('  EXCEPTION: %s: %r' % (nm, hyp))
+		raise
 	trace ('Group result: %r' % res, push = -1)
 	if res:
 		return (res, None)
