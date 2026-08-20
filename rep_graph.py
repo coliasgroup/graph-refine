@@ -834,7 +834,6 @@ class GraphSlice:
 	def add_func (self, name, inputs, outputs, success, n_vc):
 		assert n_vc not in self.funcs
 		self.funcs[n_vc] = (inputs, outputs, success)
-		self.add_func_single_side_asserts (name, n_vc)
 		for pair in pairings.get (name, []):
 			self.funcs.setdefault (pair.name, [])
 			group = self.funcs[pair.name]
@@ -904,40 +903,6 @@ class GraphSlice:
 
 		return mk_implies (foldr1 (mk_and, inp_eqs + [rpc]),
 			foldr1 (mk_and, out_eqs + [succ_imp]))
-
-	def add_func_single_side_asserts (self, name, n_vc):
-		"""assert the single-side component of the function's pairing
-		eqs, e.g. that ASM functions preserve callee-saved registers
-		and the stack outside their own frame. these facts are proven
-		as part of the callee's own refinement pairing, but are also
-		needed when reasoning about one side alone (e.g. bounding an
-		ASM loop whose body makes calls), where no matched call on
-		the other side is available to instantiate the pairing."""
-		tag = self.p.node_tags[n_vc[0]][0]
-		(inputs, outputs, _) = self.funcs[n_vc]
-		envs = {tag + '_IN': inputs, tag + '_OUT': outputs}
-		addrs = set (envs)
-		for pair in pairings.get (name, []):
-			if pair.funs.get (tag) != name:
-				continue
-			if name not in single_side_asserts_reported:
-				single_side_asserts_reported.add (name)
-				trace ('emitting single-side asserts for %s'
-					% name)
-			(inp_eqs, out_eqs) = pair.eqs
-			pre = [eq for eq in inp_eqs
-				if eq[0][1] in addrs and eq[1][1] in addrs]
-			post = [eq for eq in out_eqs
-				if eq[0][1] in addrs and eq[1][1] in addrs]
-			if not post:
-				continue
-			pre = inst_eqs (pre, envs, self.solv)
-			post = inst_eqs (post, envs, self.solv)
-			imp = foldr1 (mk_and, post)
-			if pre:
-				imp = mk_implies (foldr1 (mk_and, pre), imp)
-			imp = logic.weaken_assert (imp)
-			self.solv.assert_fact (imp, {})
 
 	def add_func_assert (self, n_vc, n_vc2):
 		imp = self.get_func_assert (n_vc, n_vc2)
@@ -1233,8 +1198,6 @@ class GraphSlice:
 last_test = [0]
 last_failed_test = [0]
 last_hyp_imps = [0]
-
-single_side_asserts_reported = set ()
 
 def to_smt_expr_under_op (expr, env, solv):
 	if expr.kind == 'Op':
