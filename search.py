@@ -1496,8 +1496,12 @@ def get_n_offset_successes (rep, sp, step, restrs):
 			if n == sp:
 				vc = vc_offs (i)
 			n_vc = (n, restrs + tuple ([(sp, vc)]))
-			(_, _, succ) = rep.get_func (n_vc)
 			pc = rep.get_pc (n_vc)
+			if pc == syntax.false_term:
+				# unreachable call site (e.g. only reachable
+				# via statically dead arcs), never emitted
+				continue
+			(_, _, succ) = rep.get_func (n_vc)
 			succs.append (syntax.mk_implies (pc, succ))
 	return succs
 
