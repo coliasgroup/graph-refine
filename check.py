@@ -452,45 +452,6 @@ def split_loop_hyps (tags, split, restrs, exit):
 	return hyps + [hyp for offs in map (vc_offs, range (n))
 		for (hyp, _) in split_hyps_at_visit (tags, split, restrs, offs)]
 
-def loop_reaches_obligations (p, head):
-	"""whether any proof obligation can observe this loop, that is,
-	whether Ret or Err is reachable from within it. executions which
-	enter a loop from which neither is reachable simply diverge, which
-	the refinement obligations do not constrain, so such loops need
-	never be restricted or related, and no check's path condition can
-	pass through them. optimising compilers create such loops out of
-	noreturn call glue, e.g. gcc -O2 lays out c_handle_interrupt's
-	noreturn tail so that the call to restore_user_context falls
-	through into the function's own earlier code."""
-	k = ('loop_reaches_obligations', p.loop_id (head))
-	if k in p.cached_analysis:
-		return p.cached_analysis[k]
-	visit = list (p.loop_body (head))
-	seen = set (visit)
-	res = False
-	while visit:
-		n = visit.pop ()
-		node = logic.simplify_node_elementary (p.nodes[n])
-		if node.kind == 'Cond' and node.cond == true_term:
-			conts = [node.left]
-		elif node.kind == 'Cond' and node.cond == false_term:
-			conts = [node.right]
-		else:
-			conts = node.get_conts ()
-		for n2 in conts:
-			if n2 in ['Ret', 'Err']:
-				res = True
-				visit = []
-				break
-			if n2 not in seen:
-				seen.add (n2)
-				visit.append (n2)
-	p.cached_analysis[k] = res
-	if not res:
-		printout ('Ignoring loop at %d (%s): diverges silently'
-			% (head, p.node_tags[head], ))
-	return res
-
 def loops_to_split (p, restrs):
 	loop_heads_with_split = set ([p.loop_id (n)
 		for (n, visit_set) in restrs])
@@ -502,8 +463,7 @@ def loops_to_split (p, restrs):
 			rem_loop_heads = [lh for lh in rem_loop_heads
 				if p.is_reachable_from (n, lh)
 				or p.node_tags[n][0] != p.node_tags[lh][0]]
-	return sorted ([lh for lh in rem_loop_heads
-		if loop_reaches_obligations (p, lh)])
+	return sorted (rem_loop_heads)
 
 def restr_others (p, restrs, n):
 	extras = [(sp, vc_upto (n)) for sp in sorted (loops_to_split (p, restrs))]
