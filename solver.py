@@ -177,8 +177,17 @@ def load_solver_set ():
 (fast_solver, slow_solver, strategy, model_strategy) = load_solver_set ()
 
 from syntax import (Expr, fresh_name, builtinTs, true_term, false_term,
-  foldr1, mk_or, boolT, word32T, word8T, mk_implies, Type, get_global_wrapper)
+  foldr1, mk_or, boolT, word32T, word8T, mk_implies, Type, get_global_wrapper,
+  mk_less, mk_word32)
 from target_objects import structs, rodata, sections, trace, printout
+
+# address ranges of validated data-section global variables which are
+# not part of the typed heap, so that heap-kind pointer validity facts
+# imply their objects lie entirely outside these ranges. this resolves
+# aliasing questions against such globals in contexts where no access
+# to them appears (e.g. loop induction checks). populated by
+# stack_logic's global cell invariant analysis.
+known_global_ranges = []
 from logic import mk_align_valid_ineq, pvalid_assertion1, pvalid_assertion2
 
 import syntax
@@ -1710,6 +1719,17 @@ class Solver:
 			(_, _, p, pv) = pdata
 			impl_al = mk_implies (pv, mk_align_valid_ineq (typ, p))
 			self.assert_fact (impl_al, {})
+			if kind in ['PValid', 'PArrayValid']:
+				# heap-typed objects lie outside the known
+				# (non-heap) global variables
+				import logic
+				for (start, end) in known_global_ranges:
+					out1 = mk_less (logic.end_addr (p,
+						typ), mk_word32 (start))
+					out2 = mk_less (mk_word32 (end), p)
+					ass = mk_implies (pv,
+						mk_or (out1, out2))
+					self.assert_fact (ass, {})
 			for val in sorted (others, key=lambda x: x[1]):
 				kinds = [val[0][2], pdata[1]]
 				if ('PWeakValid' in kinds and
