@@ -639,12 +639,7 @@ def fold_const_addr (p, tag, n, addr):
 		n = n2
 	return None
 
-# whether the loop variable analysis proposes the constancy of global
-# memory cells whose loads the compiler moved across a loop. the split
-# search clears this and retries if it cannot find a split with them.
-propose_cell_invariants = [True]
-
-def loop_global_cell_invariants (p, tag):
+def loop_global_cells (p, tag):
 	"""find memory cells read at (foldable) concrete addresses on this
 	side of the problem. proposing such a cell as a loop constant lets
 	proofs relate a pre-loop read of a global on one side to a
@@ -653,7 +648,7 @@ def loop_global_cell_invariants (p, tag):
 	only informed guesses; they are verified as part of the split
 	checks, and the search retries without them if no split is found
 	(see find_split_loop)."""
-	k = ('loop_global_cell_invariants', tag)
+	k = ('loop_global_cells', tag)
 	if k in p.cached_analysis:
 		return p.cached_analysis[k]
 	cells = {}
@@ -733,25 +728,6 @@ def loop_var_analysis (p, split):
 		([], [0]))
 	
 	va2.append ((stack_const, 'LoopConst'))
-
-	# a global cell whose load the compiler hoisted or sank across
-	# this loop is proposed as a loop constant. these are guesses,
-	# proven as part of the split checks, and the split search drops
-	# them (see search.find_split_loop) if it cannot find a split
-	# with them in place.
-	body = set (p.loop_body (head))
-	if propose_cell_invariants[0] and not [n2 for n2 in body
-			if p.nodes[n2].kind == 'Call']:
-		got = set ([str (v) for (v, data) in va2])
-		cells = loop_global_cell_invariants (p, tag)
-		for a in cells:
-			(cell, load_ns) = cells[a]
-			if str (cell) in got:
-				continue
-			if not [n2 for n2 in load_ns if n2 not in body
-					if p.is_reachable_from (n2, head)]:
-				continue
-			va2.append ((cell, 'LoopConst'))
 
 	p.cached_analysis[key] = va2
 	return va2
@@ -1517,3 +1493,27 @@ def add_hooks ():
 
 add_hooks ()
 
+def loop_cell_invariants (p, split):
+	"""global memory cells which may be worth proposing as constant
+	across this loop: cells whose load the compiler hoisted or sank
+	across it. only loops without calls in their bodies are
+	considered, since those are the tight loops such loads move
+	across, and only cells loaded on a path which reaches the loop.
+	these are guesses, proven as part of the split checks."""
+	if not is_asm_node (p, split):
+		return []
+	head = p.loop_id (split)
+	k = ('loop_cell_invariants', head)
+	if k in p.cached_analysis:
+		return p.cached_analysis[k]
+	body = set (p.loop_body (head))
+	res = []
+	if not [n for n in body if p.nodes[n].kind == 'Call']:
+		cells = loop_global_cells (p, p.node_tags[split][0])
+		for a in sorted (cells):
+			(cell, load_ns) = cells[a]
+			if [n for n in load_ns if n not in body
+					if p.is_reachable_from (n, head)]:
+				res.append (cell)
+	p.cached_analysis[k] = res
+	return res

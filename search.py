@@ -668,33 +668,6 @@ def eq_known (knowledge, vpair):
 
 def find_split_loop (p, head, restrs, hyps, unfold_limit = 9,
 		node_restrs = None, trace_ind_fails = None):
-	try:
-		return find_split_loop_inner (p, head, restrs, hyps,
-			unfold_limit = unfold_limit, node_restrs = node_restrs,
-			trace_ind_fails = trace_ind_fails)
-	except NoSplit:
-		import stack_logic
-		if not stack_logic.propose_cell_invariants[0]:
-			raise
-		# a proposed global cell invariant may be unprovable, which
-		# fails every candidate split. drop them and try again.
-		printout ('Retrying split search at %d without cell invariants.'
-			% head)
-		stack_logic.propose_cell_invariants[0] = False
-		for k in p.cached_analysis.keys ():
-			if k[0] in ['search_loop_var_analysis',
-					'loop_stack_virtual_var_cycle_analysis']:
-				del p.cached_analysis[k]
-		try:
-			return find_split_loop_inner (p, head, restrs, hyps,
-				unfold_limit = unfold_limit,
-				node_restrs = node_restrs,
-				trace_ind_fails = trace_ind_fails)
-		finally:
-			stack_logic.propose_cell_invariants[0] = True
-
-def find_split_loop_inner (p, head, restrs, hyps, unfold_limit = 9,
-		node_restrs = None, trace_ind_fails = None):
 	assert p.loop_data[head][0] == 'Head'
 	assert p.node_tags[head][0] == p.pairing.tags[0]
 
@@ -1188,15 +1161,26 @@ def split_search (head, knowledge):
 		assert eqs, pair
 		knowledge.eqs_add_model (eqs)
 
-def build_and_check_split_inner (p, pair, eqs, restrs, hyps, tags):
-	split = v_eqs_to_split (p, pair, eqs, restrs, hyps, tags = tags)
+def build_and_check_split_inner (p, pair, eqs, restrs, hyps, tags,
+		cells = True):
+	split = v_eqs_to_split (p, pair, eqs, restrs, hyps, tags = tags,
+		cells = cells)
 	if split == None:
-		return None
-	res = check_split_induct (p, restrs, hyps, split, tags = tags)
-	if res:
+		res = None
+	elif check_split_induct (p, restrs, hyps, split, tags = tags):
 		return split
 	else:
-		return 'InductFailed'
+		res = 'InductFailed'
+
+	import stack_logic
+	((l_split, _, _), _) = pair
+	if cells and stack_logic.loop_cell_invariants (p, l_split):
+		# the global cells proposed as constant across this loop may
+		# not be, which fails this candidate whatever else is true
+		# of it. try it again without them.
+		return build_and_check_split_inner (p, pair, eqs, restrs,
+			hyps, tags, cells = False)
+	return res
 
 def build_and_check_split (p, pair, eqs, restrs, hyps, tags):
 	res = build_and_check_split_inner (p, pair, eqs, restrs, hyps, tags)
@@ -1373,7 +1357,7 @@ def derive_case_split (rep, n_vcs, checks):
 	[(n, vc)] = test_n_vcs
 	return ('CaseSplit', ((n, tag), [n]))
 
-def mk_seq_eqs (p, split, step, with_rodata):
+def mk_seq_eqs (p, split, step, with_rodata, cells = True):
 	# eqs take the form of a number of constant expressions
 	eqs = []
 
@@ -1404,6 +1388,10 @@ def mk_seq_eqs (p, split, step, with_rodata):
 	k = ('extra_linear_seq_eqs', split, step)
 	eqs += p.cached_analysis.get (k, [])
 
+	if cells:
+		import stack_logic
+		eqs += stack_logic.loop_cell_invariants (p, split)
+
 	return eqs
 
 def c_memory_loop_invariant (p, c_sp, a_sp):
@@ -1421,13 +1409,16 @@ def c_memory_loop_invariant (p, c_sp, a_sp):
 	# so we pick C initial memory.
 	return mem_vars (c_sp)
 
-def v_eqs_to_split (p, pair, v_eqs, restrs, hyps, tags = None):
+def v_eqs_to_split (p, pair, v_eqs, restrs, hyps, tags = None,
+		cells = True):
 	trace ('v_eqs_to_split: (%s, %s)' % pair)
 
 	((l_n, l_init, l_step), (r_n, r_init, r_step)) = pair
-	l_details = (l_n, (l_init, l_step), mk_seq_eqs (p, l_n, l_step, True)
+	l_details = (l_n, (l_init, l_step),
+		mk_seq_eqs (p, l_n, l_step, True, cells = cells)
 		+ [v_i[0] for (v_i, v_j) in v_eqs if v_j == 'Const'])
-	r_details = (r_n, (r_init, r_step), mk_seq_eqs (p, r_n, r_step, False)
+	r_details = (r_n, (r_init, r_step),
+		mk_seq_eqs (p, r_n, r_step, False, cells = cells)
 		+ c_memory_loop_invariant (p, r_n, l_n))
 
 	eqs = [(v_i[0], mk_cast (v_j[0], v_i[0].typ))
