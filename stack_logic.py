@@ -669,38 +669,15 @@ def loop_global_cell_invariants (p, tag):
 				a = fold_const_addr (p, tag, n, addr)
 			else:
 				a = addr.val
-			if a == None or not addr_in_data_symbol (a):
+			if a == None:
 				continue
 			cells.setdefault (a, (syntax.mk_memacc (m,
 				syntax.mk_word32 (a), syntax.word32T), []))
 			cells[a][1].append (n)
 	trace ('global cell invariant candidates (%s): %s'
 		% (tag, sorted ([hex (a) for a in cells])))
-	for a in cells:
-		rng = addr_in_data_symbol (a)
-		if rng and rng not in solver.known_global_ranges:
-			solver.known_global_ranges.append (rng)
 	p.cached_analysis[k] = cells
 	return cells
-
-# global variables which host typed-heap objects (reached through
-# ordinary heap pointer validity facts), and so must not be assumed
-# disjoint from heap objects.
-heap_hosting_globals = set (['intStateIRQNode', 'ksIdleThreadTCB'])
-
-def addr_in_data_symbol (a):
-	"""check that address a lies within a writable data section symbol
-	which does not host typed heap objects, so that it can be trusted
-	to be a plain global variable cell. returns the symbol's address
-	range."""
-	from target_objects import symbols
-	data_sects = ['.bss', '.data', '.boot.bss', '.boot.data']
-	for (nm, (addr, size, sect)) in symbols.iteritems ():
-		if sect in data_sects and addr <= a < addr + size:
-			if nm in heap_hosting_globals:
-				return None
-			return (addr, addr + size - 1)
-	return None
 
 def loop_global_load_invariants (p, tag, va):
 	"""find memory cells which optimising compilers have implicitly
