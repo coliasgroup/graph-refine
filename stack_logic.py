@@ -639,6 +639,11 @@ def fold_const_addr (p, tag, n, addr):
 		n = n2
 	return None
 
+# whether the loop variable analysis proposes the constancy of global
+# memory cells whose loads the compiler moved across a loop. the split
+# search clears this and retries if it cannot find a split with them.
+propose_cell_invariants = [True]
+
 def loop_global_cell_invariants (p, tag):
 	"""find memory cells read at (foldable) concrete addresses on this
 	side of the problem. proposing such a cell as a loop constant lets
@@ -678,60 +683,6 @@ def loop_global_cell_invariants (p, tag):
 		% (tag, sorted ([hex (a) for a in cells])))
 	p.cached_analysis[k] = cells
 	return cells
-
-def loop_global_load_invariants (p, tag, va):
-	"""find memory cells which optimising compilers have implicitly
-	asserted loop-constant: when a register is constant through the
-	loop and its assignments (outside calls) all load the same
-	address, the compiler has hoisted a load of a global out of the
-	loop, which is only valid if the loop cannot write that address.
-	adding the cell itself as a loop-constant lets proofs connect the
-	cached register to fresh loads of the same global made elsewhere
-	(e.g. by the C side after the loop)."""
-	consts = set ([v.name for (v, data) in va
-		if data == 'LoopConst' if v.kind == 'Var'])
-	defs = {}
-	for n in p.nodes:
-		if p.node_tags[n][0] != tag:
-			continue
-		node = p.nodes[n]
-		if node.kind != 'Basic':
-			continue
-		for ((nm, _), val) in node.upds:
-			if nm not in consts:
-				continue
-			if (val.is_op ('MemAcc')
-					and val.vals[0].kind == 'Var'
-					and val.vals[0].name != 'mem'):
-				# register restore from a stack slot
-				# (e.g. an epilogue pop), not a value source
-				continue
-			defs.setdefault (nm, [])
-			defs[nm].append (val)
-	extra = []
-	seen = set ()
-	for nm in defs:
-		vals = defs[nm]
-		v = vals[0]
-		if [v2 for v2 in vals if v2 != v]:
-			continue
-		if not (v.is_op ('MemAcc') and v.typ == syntax.word32T):
-			continue
-		[m, addr] = v.vals
-		if not (m.kind == 'Var' and m.name == 'mem'):
-			continue
-		addr_vs = set ([nm2 for (nm2, _)
-			in syntax.get_expr_var_set (addr)])
-		if not addr_vs <= consts:
-			continue
-		k = str (addr)
-		if k in seen:
-			continue
-		seen.add (k)
-		trace ('%s: global load cached in %s, adding cell invariant'
-			% (v, nm))
-		extra.append ((v, 'LoopConst'))
-	return extra
 
 def loop_var_analysis (p, split):
 	"""computes the same loop dataflow analysis as in the 'logic' module
@@ -783,29 +734,24 @@ def loop_var_analysis (p, split):
 	
 	va2.append ((stack_const, 'LoopConst'))
 
-	va2.extend (loop_global_load_invariants (p, tag, va2))
-
-	if logic.aggressive_cell_invariants[0]:
-		# only propose global cell constancy at loops without calls
-		# in their bodies: these are the tight compiler-generated
-		# loops that loads of globals get hoisted or sunk across,
-		# and their memory writes are all directly visible, so a
-		# true cell invariant is directly provable. only cells
-		# loaded on a path reaching the loop are of interest.
-		body = set (p.loop_body (head))
-		if not [n2 for n2 in body if p.nodes[n2].kind == 'Call']:
-			got = set ([str (v) for (v, data) in va2])
-			cells = loop_global_cell_invariants (p, tag)
-			for a in cells:
-				(cell, load_ns) = cells[a]
-				if str (cell) in got:
-					continue
-				if not [n2 for n2 in load_ns
-						if n2 not in body
-						if p.is_reachable_from (n2,
-							head)]:
-					continue
-				va2.append ((cell, 'LoopConst'))
+	# a global cell whose load the compiler hoisted or sank across
+	# this loop is proposed as a loop constant. these are guesses,
+	# proven as part of the split checks, and the split search drops
+	# them (see search.find_split_loop) if it cannot find a split
+	# with them in place.
+	body = set (p.loop_body (head))
+	if propose_cell_invariants[0] and not [n2 for n2 in body
+			if p.nodes[n2].kind == 'Call']:
+		got = set ([str (v) for (v, data) in va2])
+		cells = loop_global_cell_invariants (p, tag)
+		for a in cells:
+			(cell, load_ns) = cells[a]
+			if str (cell) in got:
+				continue
+			if not [n2 for n2 in load_ns if n2 not in body
+					if p.is_reachable_from (n2, head)]:
+				continue
+			va2.append ((cell, 'LoopConst'))
 
 	p.cached_analysis[key] = va2
 	return va2

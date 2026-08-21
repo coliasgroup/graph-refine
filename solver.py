@@ -179,7 +179,6 @@ def load_solver_set ():
 from syntax import (Expr, fresh_name, builtinTs, true_term, false_term,
   foldr1, mk_or, boolT, word32T, word8T, mk_implies, Type, get_global_wrapper)
 from target_objects import structs, rodata, sections, trace, printout
-
 from logic import mk_align_valid_ineq, pvalid_assertion1, pvalid_assertion2
 
 import syntax

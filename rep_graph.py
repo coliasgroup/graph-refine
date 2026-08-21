@@ -396,25 +396,8 @@ class GraphSlice:
 
 		return pc_env
 
-	def arc_statically_dead (self, n, n2):
-		"""whether the arc from node n to node n2 is statically dead
-		(the untaken arm of a constant condition). such arcs
-		contribute nothing to path conditions, and following them can
-		needlessly drag the pc computation into loops which no live
-		path reaches (e.g. silently diverging loops, which proofs are
-		permitted to leave unrestricted)."""
-		node = self.p.nodes[n]
-		if node.kind != 'Cond' or node.left == node.right:
-			return False
-		if node.cond == true_term and n2 == node.right:
-			return True
-		if node.cond == false_term and n2 == node.left:
-			return True
-		return False
-
 	def warm_pc_env_cache (self, n_vc, tag):
 		'this is to avoid recursion limits and spot bugs'
-		init_n_vc = n_vc
 		prev_chain = []
 		for i in range (5000):
 			prevs = self.prevs (n_vc)
@@ -423,9 +406,7 @@ class GraphSlice:
 					if (tag, p[0], p[1])
 						not in self.node_pc_envs
 					if self.get_tag_vcount (p, None)
-						== (tag, n_vc[1])
-					if not self.arc_statically_dead (
-						p[0], n_vc[0])]
+						== (tag, n_vc[1])]
 			except self.TooGeneral:
 				break
 			if not prevs:
@@ -433,9 +414,7 @@ class GraphSlice:
 			n_vc = prevs[0]
 			prev_chain.append(n_vc)
 		if not (len (prev_chain) < 5000):
-			printout ('warm_pc_env_cache overrun from %s (%s):'
-				% (init_n_vc, tag))
-			printout (str ([n for (n, vc) in prev_chain[:100]]))
+			printout ([n for (n, vc) in prev_chain])
 			assert len (prev_chain) < 5000, (prev_chain[:10],
 				prev_chain[-10:])
 		
@@ -604,8 +583,6 @@ class GraphSlice:
 		return name
 
 	def get_arc_pc_envs (self, n, n_vc2):
-		if self.arc_statically_dead (n, n_vc2[0]):
-			return []
 		try:
 			prevs = [n_vc for n_vc in self.prevs (n_vc2)
 				if n_vc[0] == n]
@@ -627,9 +604,6 @@ class GraphSlice:
 
 		assert self.is_cont ((n, vcount), n2), ((n, vcount),
 			n2, self.p.nodes[n].get_conts ())
-
-		if self.arc_statically_dead (n, n2[0]):
-			return None
 
 		if (n, vcount) in self.arc_pc_envs:
 			return self.arc_pc_envs[(n, vcount)].get (n2[0])

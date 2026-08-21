@@ -354,17 +354,6 @@ def update_v_ids_for_model (knowledge, pairs, vs, m):
 			for x in xs:
 				vs[x] = (k_counter, const)
 			k_counter += 1
-	mem_t = syntax.builtinTs['Mem']
-	mem_vs = [(v, vs[v]) for v in vs if v[0].typ == mem_t]
-	if mem_vs:
-		trace ('mem var classes after model:')
-		for (v, (kid, const)) in sorted (mem_vs,
-				key = lambda x: (x[1][0], x[0][1:])):
-			(var, n, offs, step) = v
-			trace ('  class %d%s: %s @ (%d%s, %d, %d)'
-				% (kid, [' ', ' const'][const], var.name,
-				n, knowledge.rep.p.node_tags[n][1:2],
-				offs, step))
 	# then figure out which pairings are still viable
 	needed_ks = set ()
 	zero = syntax.mk_word32 (0)
@@ -679,36 +668,32 @@ def eq_known (knowledge, vpair):
 	preds = expand_var_eqs (knowledge, vpair)
 	return set (preds) <= knowledge.facts
 
-def purge_loop_var_analysis_caches (p):
-	for k in p.cached_analysis.keys ():
-		if k[0] in ['search_loop_var_analysis',
-				'loop_stack_virtual_var_cycle_analysis']:
-			del p.cached_analysis[k]
-
 def find_split_loop (p, head, restrs, hyps, unfold_limit = 9,
 		node_restrs = None, trace_ind_fails = None):
 	try:
 		return find_split_loop_inner (p, head, restrs, hyps,
-			unfold_limit = unfold_limit,
-			node_restrs = node_restrs,
+			unfold_limit = unfold_limit, node_restrs = node_restrs,
 			trace_ind_fails = trace_ind_fails)
 	except NoSplit:
-		if not logic.aggressive_cell_invariants[0]:
+		import stack_logic
+		if not stack_logic.propose_cell_invariants[0]:
 			raise
-		# the guessed global-cell invariants may have poisoned the
-		# split candidates. retry without them.
+		# a proposed global cell invariant may be unprovable, which
+		# fails every candidate split. drop them and try again.
 		printout ('Retrying split search at %d without cell invariants.'
 			% head)
-		logic.aggressive_cell_invariants[0] = False
-		purge_loop_var_analysis_caches (p)
+		stack_logic.propose_cell_invariants[0] = False
+		for k in p.cached_analysis.keys ():
+			if k[0] in ['search_loop_var_analysis',
+					'loop_stack_virtual_var_cycle_analysis']:
+				del p.cached_analysis[k]
 		try:
 			return find_split_loop_inner (p, head, restrs, hyps,
 				unfold_limit = unfold_limit,
 				node_restrs = node_restrs,
 				trace_ind_fails = trace_ind_fails)
 		finally:
-			logic.aggressive_cell_invariants[0] = True
-			purge_loop_var_analysis_caches (p)
+			stack_logic.propose_cell_invariants[0] = True
 
 def find_split_loop_inner (p, head, restrs, hyps, unfold_limit = 9,
 		node_restrs = None, trace_ind_fails = None):
@@ -1260,17 +1245,6 @@ def get_new_extra_linear_seq_eqs (p, restrs, l_split, l_step):
 
 def trace_search_fail (knowledge):
 	trace (('Exhausted split candidates for %s' % knowledge.name))
-	p = knowledge.rep.p
-	def pt_str ((n, start, step)):
-		return '(%d%s, %d, %d)' % (n, p.node_tags[n][1:2], start, step)
-	printout ('Exhausted split candidates for %s:' % knowledge.name)
-	for (pair, res) in sorted (knowledge.pairs.items ())[:40]:
-		(l_pt, r_pt) = pair
-		printout ('  %s vs %s: %s' % (pt_str (l_pt), pt_str (r_pt),
-			str (res)[:200]))
-	if len (knowledge.pairs) > 40:
-		printout ('  ... and %d more pairs'
-			% (len (knowledge.pairs) - 40))
 	fails = [it for it in knowledge.pairs.items ()
 		if it[1][0] == 'Failed']
 	last_failed_pairings.append (fails)
@@ -1496,12 +1470,8 @@ def get_n_offset_successes (rep, sp, step, restrs):
 			if n == sp:
 				vc = vc_offs (i)
 			n_vc = (n, restrs + tuple ([(sp, vc)]))
-			pc = rep.get_pc (n_vc)
-			if pc == syntax.false_term:
-				# unreachable call site (e.g. only reachable
-				# via statically dead arcs), never emitted
-				continue
 			(_, _, succ) = rep.get_func (n_vc)
+			pc = rep.get_pc (n_vc)
 			succs.append (syntax.mk_implies (pc, succ))
 	return succs
 

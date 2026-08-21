@@ -764,19 +764,7 @@ def test_hyp_group (rep, group, detail = None):
 	names = set ([name for (_, _, name) in group])
 
 	trace ('Testing group of hyps: %s' % list (names), push = 1)
-	try:
-		(res, i, res_kind) = rep.test_hyp_imps (imps)
-	except Exception:
-		printout ('Exception testing hyp group: %s' % list (names))
-		for (hyps, hyp, nm) in group[:20]:
-			try:
-				rep.interpret_hyp (hyp)
-				for hyp2 in hyps:
-					rep.interpret_hyp (hyp2)
-				printout ('  ok: %s: %r' % (nm, hyp))
-			except Exception:
-				printout ('  EXCEPTION: %s: %r' % (nm, hyp))
-		raise
+	(res, i, res_kind) = rep.test_hyp_imps (imps)
 	trace ('Group result: %r' % res, push = -1)
 	if res:
 		return (res, None)
@@ -946,11 +934,6 @@ def check_proof_report_rec (p, restrs, hyps, proof, step_num, ctxt, inducts,
 							if m:
 								import debug
 								debug.trace_model (rep, m)
-								for i in range (15):
-									printout ('trace of r%d (ASM):' % i)
-									debug.trace_var (rep, 'ASM', m,
-										syntax.mk_var ('r%d' % i,
-											syntax.word32T))
 						except Exception, e:
 							printout ('      (model debug failed: %r)' % e)
 				return
