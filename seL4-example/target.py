@@ -30,6 +30,24 @@ assert not aconst_globals
 
 assert logic.aligned_address_sanity (afunctions, symbols, 4)
 
+# these functions never return, so the fall-through continuations the
+# decompiler gives calls to them are bogus. when the fall-through address
+# is not part of the calling function the continuation node is already
+# missing (and gets patched to an error node), but when it happens to be
+# real code of the same function it can even manufacture spurious cycles
+# (e.g. the noreturn tail of c_handle_interrupt at -O2).
+noreturn_fnames = ['halt', 'idle_thread', 'restore_user_context']
+for fname in afunctions:
+	fun = functions[fname]
+	if not fun:
+		continue
+	for n in fun.nodes:
+		node = fun.nodes[n]
+		if (node.kind == 'Call' and node.fname in noreturn_fnames
+				and node.cont != 'Err'):
+			fun.nodes[n] = syntax.Node ('Call', 'Err',
+				(node.fname, node.args, node.rets))
+
 f = open ('%s/kernel.elf.rodata' % target_dir)
 objdump.install_rodata (f, [('Section', '.rodata'), ('Symbol', 'kernel_device_frames'),
 	('Symbol', 'avail_p_regs')])
