@@ -105,10 +105,6 @@ def trace_model (rep, m, simplify = True):
 			if node.kind != 'Cond':
 				continue
 			name = rep.cond_name ((n, vc))
-			if name not in m:
-				print '%s: (not in model) (%s, %s)' % (name,
-					node.left, node.right)
-				continue
 			cond = m[name] == syntax.true_term
 			print '%s: %s (%s, %s)' % (name, cond,
 				node.left, node.right)
