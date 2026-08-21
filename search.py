@@ -1664,44 +1664,8 @@ def check_split_induct (p, restrs, hyps, split, tags = None):
 
 	return rep.test_hyp_whyps (hyp, hyps)
 
-def loop_reaches_obligations (p, head):
-	"""whether any proof obligation can observe this loop, that is,
-	whether Ret or Err is reachable from within it, ignoring statically
-	dead arcs. executions which enter a loop from which neither is
-	reachable simply diverge, and the refinement obligations, being
-	partial correctness statements, do not constrain them: no check's
-	path condition passes through such a loop, so the proof need not
-	restrict or relate it. optimising compilers create such loops out
-	of noreturn call glue, e.g. gcc -O2 lays out c_handle_interrupt's
-	noreturn tail so that the call to restore_user_context falls
-	through into the function's own earlier code."""
-	k = ('loop_reaches_obligations', p.loop_id (head))
-	if k in p.cached_analysis:
-		return p.cached_analysis[k]
-	visit = list (p.loop_body (head))
-	seen = set (visit)
-	res = False
-	while visit:
-		n = visit.pop ()
-		node = logic.simplify_node_elementary (p.nodes[n])
-		conts = node.get_conts ()
-		for n2 in conts:
-			if n2 in ['Ret', 'Err']:
-				res = True
-				visit = []
-				break
-			if n2 not in seen:
-				seen.add (n2)
-				visit.append (n2)
-	p.cached_analysis[k] = res
-	if not res:
-		printout ('Ignoring loop at %d (%s): diverges silently'
-			% (head, p.node_tags[head], ))
-	return res
-
 def init_loops_to_split (p, restrs):
-	to_split = [n for n in loops_to_split (p, restrs)
-		if loop_reaches_obligations (p, n)]
+	to_split = loops_to_split (p, restrs)
 
 	return [n for n in to_split
 		if not [n2 for n2 in to_split if n2 != n

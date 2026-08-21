@@ -22,31 +22,37 @@ f = open ('%s/CFunctions.txt' % target_dir)
 syntax.parse_and_install_all (f, 'C')
 f.close ()
 
+# These functions never return. This is an assumption about the target:
+# the graph language equates reaching a call with returning from it, so
+# 'noreturn' cannot be derived, and the decompiler gives every call a
+# fall-through continuation at the next address.
+#   halt                  spins with interrupts masked
+#   idle_thread           spins waiting for an interrupt
+#   restore_user_context  leaves the kernel by exception return
+#   c_handle_vm_fault     handles the fault and leaves by the same route
+# Where the fall-through address is not part of the calling function its
+# continuation node is missing, and syntax.check_cfg already patches it
+# to an error node; this makes the same patch where the address happens
+# to be real code of the same function, which otherwise manufactures a
+# spurious cycle (the noreturn tail of c_handle_interrupt at -O2). The
+# patch only prunes executions in which one of these functions returns,
+# which the target cannot perform, so a refinement proof of a patched
+# function is a proof of the unpatched one. Note that it can leave a
+# function with no reachable Ret, which makes its refinement obligations
+# vacuous (see the TODO in check.leaf_condition_checks).
+noreturn_fnames = ['halt', 'idle_thread', 'restore_user_context',
+	'c_handle_vm_fault']
+
 f = open ('%s/ASMFunctions.txt' % target_dir)
-(astructs, afunctions, aconst_globals) = syntax.parse_and_install_all (f, 'ASM',skip_functions= ['fastpath_call', 'fastpath_reply_recv','c_handle_syscall','arm_swi_syscall'])
+(astructs, afunctions, aconst_globals) = syntax.parse_and_install_all (f, 'ASM',
+	skip_functions = ['fastpath_call', 'fastpath_reply_recv',
+		'c_handle_syscall', 'arm_swi_syscall'],
+	noreturn_functions = noreturn_fnames)
 f.close ()
 assert not astructs
 assert not aconst_globals
 
 assert logic.aligned_address_sanity (afunctions, symbols, 4)
-
-# these functions never return, so the fall-through continuations the
-# decompiler gives calls to them are bogus. when the fall-through address
-# is not part of the calling function the continuation node is already
-# missing (and gets patched to an error node), but when it happens to be
-# real code of the same function it can even manufacture spurious cycles
-# (e.g. the noreturn tail of c_handle_interrupt at -O2).
-noreturn_fnames = ['halt', 'idle_thread', 'restore_user_context']
-for fname in afunctions:
-	fun = functions[fname]
-	if not fun:
-		continue
-	for n in fun.nodes:
-		node = fun.nodes[n]
-		if (node.kind == 'Call' and node.fname in noreturn_fnames
-				and node.cont != 'Err'):
-			fun.nodes[n] = syntax.Node ('Call', 'Err',
-				(node.fname, node.args, node.rets))
 
 f = open ('%s/kernel.elf.rodata' % target_dir)
 objdump.install_rodata (f, [('Section', '.rodata'), ('Symbol', 'kernel_device_frames'),

@@ -1102,7 +1102,7 @@ true_term = Expr ('Op', boolT, name = 'True', vals = [])
 false_term = Expr ('Op', boolT, name = 'False', vals = [])
 unspecified_precond_term = Expr ('Op', boolT, name = 'UnspecifiedPrecond', vals = [])
 
-def parse_all(lines):
+def parse_all(lines, noreturn_functions = None, skip_functions = None):
 	'''Toplevel parser for input information. Accepts an iterator over
 lines. See syntax.quick_reference for an explanation.'''
 
@@ -1159,7 +1159,8 @@ lines. See syntax.quick_reference for an explanation.'''
 				entry, [])
 			current_function.entry = name
 			# ensure that the function graph is closed
-			check_cfg (current_function, warnings = cfg_warnings)
+			check_cfg (current_function, warnings = cfg_warnings,
+				noreturn_functions = noreturn_functions)
 			current_function = None
 		else:
 			# <node name> <node (encoded)>
@@ -1167,16 +1168,24 @@ lines. See syntax.quick_reference for an explanation.'''
 			assert name not in current_function.nodes, (name, bits)
 			current_function.nodes[name] = parse_node (bits, 1)
 
+	cfg_warnings = [(fun, n, n2) for (fun, n, n2) in cfg_warnings
+		if fun.name not in (skip_functions or [])]
 	print_cfg_warnings (cfg_warnings)
+	assert not cfg_warnings, ('dangling control flow arcs, which would '
+		'silently be assumed unreachable: %s' % [(fun.name, n, n2)
+			for (fun, n, n2) in cfg_warnings][:10])
 	trace ('Loaded %d functions, %d structs, %d globals.'
 		% (len (functions), len (structs), len (const_globals)))
 
 	return (structs, functions, const_globals)
 
-def parse_and_install_all (lines, tag, skip_functions=None):
+def parse_and_install_all (lines, tag, skip_functions=None,
+		noreturn_functions=None):
 	if skip_functions == None:
 		skip_functions = []
-	(structs, functions, const_globals) = parse_all (lines)
+	(structs, functions, const_globals) = parse_all (lines,
+		noreturn_functions = noreturn_functions,
+		skip_functions = skip_functions)
 	for f in skip_functions:
 		if f in functions:
 			del functions[f]
@@ -1249,7 +1258,29 @@ def get_lval_typ(lval):
 def get_expr_typ(expr):
 	return expr.typ
 
-def check_cfg (fun, warnings = None):
+def check_cfg (fun, warnings = None, noreturn_functions = None):
+	# the continuation the decompiler gives a call to a function which
+	# never returns is bogus. rewrite it to Err, which prunes only
+	# executions the target cannot perform. this must happen before
+	# the search for dangling arcs, since it removes most of them.
+	for n in fun.nodes:
+		node = fun.nodes[n]
+		if (node.kind == 'Call' and node.cont != 'Err'
+				and node.fname in (noreturn_functions or [])):
+			fun.nodes[n] = Node ('Call', 'Err',
+				(node.fname, node.args, node.rets))
+	# nodes reachable from the entry, which is the only place a
+	# dangling arc matters. padding after a call to a function which
+	# never returns is not reachable, for instance.
+	reachable = set ()
+	visit = [fun.entry]
+	while visit:
+		n = visit.pop ()
+		if n in reachable:
+			continue
+		reachable.add (n)
+		if n in fun.nodes:
+			visit.extend (fun.nodes[n].get_conts ())
 	dead_arcs = [(n, n2) for (n, node) in fun.nodes.iteritems ()
 		for n2 in node.get_conts ()
 		if n2 not in fun.nodes and n2 not in ['Ret', 'Err']]
@@ -1257,6 +1288,7 @@ def check_cfg (fun, warnings = None):
 		assert type (n2) != str
 		# OK if multiple dead arcs and we save over n2 twice
 		fun.nodes[n2] = Node ('Basic', 'Err', [])
+	dead_arcs = [(n, n2) for (n, n2) in dead_arcs if n in reachable]
 	if warnings == None:
 		print_cfg_warnings ([(fun, n, n2) for (n, n2) in dead_arcs])
 	else:
