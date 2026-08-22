@@ -226,7 +226,10 @@ def mk_eqs_arm_none_eabi_gnu (var_c_args, var_c_rets, c_imem, c_omem,
 	sregs = mk_stack_sequence (sp, 4, st, word32T, len (var_c_args) + 1)
 
 	ret = mk_var ('ret', word32T)
-	preconds = [mk_aligned (sp, 2), mk_eq (ret, mk_var ('r14', word32T)),
+	# the procedure call standard requires the stack pointer to be
+	# doubleword aligned at a public interface, which is what lets the
+	# compiler put an ldrd or strd on a stack slot.
+	preconds = [mk_aligned (sp, 3), mk_eq (ret, mk_var ('r14', word32T)),
 		mk_aligned (ret, 2), mk_eq (r0_input, r0),
 		mk_less_eq (min_stack_size, sp)]
 	post_eqs = [(x, x) for x in mk_var_list (['r4', 'r5', 'r6', 'r7', 'r8',
