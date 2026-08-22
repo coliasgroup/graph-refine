@@ -105,10 +105,34 @@ def trace_model (rep, m, simplify = True):
 			if node.kind != 'Cond':
 				continue
 			name = rep.cond_name ((n, vc))
+			if name not in m:
+				print '%s: (not in model) (%s, %s)' % (name,
+					node.left, node.right)
+				continue
 			cond = m[name] == syntax.true_term
 			print '%s: %s (%s, %s)' % (name, cond,
 				node.left, node.right)
 			investigate_cond (rep, m, name, simplify)
+
+def trace_model_relations (rep, m):
+	"""print the model's verdict on the memory and stack equalities which
+	tie the two sides together at each function call. a call pairing is
+	an implication, so a false antecedent here means the call told the
+	proof nothing at all."""
+	solv = rep.solv
+	interesting = []
+	for (psexpr, (v, typ)) in solv.model_exprs.iteritems ():
+		s = solver.flat_s_expression (psexpr)
+		if 'mem-eq' in s or s.startswith ('(= stack'):
+			interesting.append ((v, s))
+	print 'Model relations'
+	for (v, s) in sorted (interesting, key = lambda (v, s): s):
+		if v in m:
+			val = m[v]
+			val = getattr (val, 'name', val)
+		else:
+			val = '(not in model)'
+		print '  %s: %s' % (s, val)
 
 def walk_model (rep, tag, m):
 	n_vcs = [(n, vc) for (tag2, n, vc) in rep.node_pc_env_order
