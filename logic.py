@@ -64,6 +64,95 @@ def azip (xs, ys):
 	assert len (xs) == len (ys)
 	return zip (xs, ys)
 
+def expr_mem_vars (expr):
+	vs = {}
+	syntax.get_expr_vars (expr, vs)
+	memT = builtinTs['Mem']
+	return set ([v for v in vs if vs[v] == memT])
+
+def summarise_mem_use (functions, f):
+	"""which of this function's memory inputs does its body use, and
+	which callee parameters do the others flow into? pseudo_compile
+	hands every call the whole global state, so handing memory to a
+	function which ignores it is not a use."""
+	memT = builtinTs['Mem']
+	mvars = set ([v for (v, typ) in f.inputs if typ == memT])
+	used = set ()
+	deps = dict ([(v, set ()) for v in mvars])
+	for n in f.reachable_nodes ():
+		node = f.nodes[n]
+		used |= mvars & set ([nm for (nm, typ) in node.get_lvals ()])
+		if node.kind == 'Basic':
+			for (lval, val) in node.upds:
+				used |= mvars & expr_mem_vars (val)
+		elif node.kind == 'Cond':
+			used |= mvars & expr_mem_vars (node.cond)
+		elif node.kind == 'Call':
+			callee = functions.get (node.fname)
+			for (i, arg) in enumerate (node.args):
+				vs = mvars & expr_mem_vars (arg)
+				if not vs:
+					pass
+				elif arg.kind == 'Var' and callee != None:
+					deps[arg.name].add ((node.fname,
+						callee.inputs[i][0]))
+				else:
+					used |= vs
+	return (used, deps)
+
+# (len (functions), result), recomputed if the function set grows, as
+# it does when inst_logic adds the instruction specs
+dead_mem_inputs = [None, None]
+
+def compute_dead_mem_inputs (functions):
+	"""for each function, the memory inputs it cannot depend on: never
+	read, never written, and passed on only where they are dead too."""
+	memT = builtinTs['Mem']
+	summaries = {}
+	dead = {}
+	for (nm, f) in functions.iteritems ():
+		mvars = set ([v for (v, typ) in f.inputs if typ == memT])
+		if f.entry == None:
+			# underspecified; assume the worst
+			dead[nm] = set ()
+			continue
+		(used, summaries[nm]) = summarise_mem_use (functions, f)
+		dead[nm] = mvars - used
+	while True:
+		drops = [(nm, v) for nm in summaries for v in dead[nm]
+			for (g, p) in summaries[nm][v]
+			if p not in dead.get (g, set ())]
+		if not drops:
+			return dead
+		for (nm, v) in drops:
+			dead[nm].discard (v)
+
+def get_dead_mem_inputs (functions):
+	if dead_mem_inputs[0] != len (functions):
+		dead_mem_inputs[1] = compute_dead_mem_inputs (functions)
+		dead_mem_inputs[0] = len (functions)
+	return dead_mem_inputs[1]
+
+def is_memory_free (functions, asm_f, c_f):
+	"""can neither side of this pairing depend on memory? such a
+	function's results cannot depend on the memory it is called with,
+	so the pairing need not require the two sides to agree on it. that
+	is what lets a caller pair one assembly call with several calls of
+	the C function it was compiled from, which is what a compiler
+	leaves behind when it drops a repeated call to a 'const' function.
+	the weaker precondition is proven, not assumed: the pairing is also
+	the obligation discharged when this function itself is checked."""
+	memT = builtinTs['Mem']
+	if asm_f not in functions or c_f not in functions:
+		return False
+	c_fun = functions[c_f]
+	if [nm for (nm, typ) in c_fun.outputs if typ == memT]:
+		return False
+	dead = get_dead_mem_inputs (functions)
+	return (set ([nm for (nm, typ) in c_fun.inputs if typ == memT])
+			<= dead.get (c_f, set ())
+		and 'mem' in dead.get (asm_f, set ()))
+
 def mk_mem_eqs (a_imem, c_imem, a_omem, c_omem, tags):
 	[a_imem] = a_imem
 	a_tag, c_tag = tags

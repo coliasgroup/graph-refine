@@ -44,6 +44,10 @@ def build_problem (pairing, force_inline = None, avoid_abort = False, inline_scr
 	else:
 		trace ('Searching for inlining.')
 		# FIXME: the inlining is heuristic, and arguably belongs in 'search'
+		# this one goes first: it compares the two sides' call counts,
+		# which is the shape the compiler left behind, and which the
+		# inlining below would obscure. it is also much cheaper here.
+		inline_dropped_repeat_calls (p)
 		inline_completely_unmatched (p, skip_underspec = avoid_abort)
 		# now do any C inlining
 		inline_reachable_unmatched_C (p, force_inline,
@@ -88,6 +92,52 @@ def inline_completely_unmatched (p, ref_tags = None, skip_underspec = False):
 		if not ns:
 			p.do_analysis ()
 			return
+
+def inline_dropped_repeat_calls (p):
+	"""a compiler which knows a function is 'const' may drop repeated
+	calls to it, leaving the C side with more calls than the assembly
+	has. the surviving assembly call pairs with at most one of them, so
+	the results of the rest are unconstrained. worse, the pairing is
+	not even emitted once anything else has been called in between,
+	because rep_graph.mem_calls_compatible declines to pair calls whose
+	memory has seen different call histories. unfold the function on
+	both sides instead. restricted to functions which cannot touch
+	memory, which is where a compiler does this, and which keeps the
+	unfolding small."""
+	if 'C' not in p.pairing.tags:
+		return
+	[asm_tag] = [tag for tag in p.pairing.tags if tag != 'C']
+	calls = {}
+	for n in p.nodes:
+		if p.nodes[n].kind == 'Call':
+			calls.setdefault ((p.node_tags[n][0],
+				p.nodes[n].fname), []).append (n)
+	ns = []
+	for ((tag, f_nm), c_ns) in calls.iteritems ():
+		if tag != 'C':
+			continue
+		pairs = [pair for pair in pairings.get (f_nm, [])
+			if pair.tags == p.pairing.tags]
+		if not pairs:
+			continue
+		asm_f = pairs[0].funs[asm_tag]
+		asm_ns = calls.get ((asm_tag, asm_f), [])
+		# a function the assembly does not call at all is the
+		# ordinary unmatched case, which the inlining below already
+		# handles. what needs unfolding is a surviving assembly call
+		# which can pair with only one of several C calls.
+		if not asm_ns or len (c_ns) <= len (asm_ns):
+			continue
+		if not logic.is_memory_free (functions, asm_f, f_nm):
+			continue
+		trace ('Function %s called %d times in C and %d times in %s'
+			' - unfolding both sides.'
+			% (f_nm, len (c_ns), len (asm_ns), asm_tag))
+		ns.extend (c_ns + asm_ns)
+	for n in ns:
+		inline_at_point (p, n)
+	if ns:
+		p.do_analysis ()
 
 def inline_reachable_unmatched_C (p, force_inline = None,
 		skip_underspec = False):
