@@ -380,10 +380,12 @@ def get_entry_visits_up_to (rep, head, restrs, hyps):
 	if k in rep.p.cached_analysis:
 		return rep.p.cached_analysis[k]
 
-	[entry] = [n for n2 in rep.p.loop_body (head)
-		for n in rep.p.preds[n2]
-		if rep.p.loop_id (n) == None]
-	frontier = set ([entry])
+	# the same notion of entry that get_necessary_split_opts uses to
+	# decide whether this loop needs a case split. taking the structural
+	# predecessors instead would count entries which are provably never
+	# taken, of which gcc-15 leaves a few, and there is then no single
+	# entry to walk from.
+	frontier = set (get_loop_entry_sites (rep, restrs, hyps, head))
 	up_to = set ()
 	loop = rep.p.loop_body (head)
 	while frontier:
