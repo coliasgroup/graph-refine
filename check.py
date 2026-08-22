@@ -622,11 +622,8 @@ def check_split_induct_step_group (rep, restrs, hyps, split, tags = None):
 		tags = tags)
 	groups = proof_check_groups (checks)
 	for group in groups:
-		(verdict, fail) = test_hyp_group (rep, group)
+		(verdict, _) = test_hyp_group (rep, group)
 		if not verdict:
-			if fail:
-				printout ('  split induct fail (%s): %s'
-					% (fail[2], str (fail[1])[:250]))
 			return False
 	return True
 
@@ -838,7 +835,6 @@ def failed_test_sets (p, checks):
 
 save_proof_checks = [None]
 save_checked_proof_scripts = [None]
-debug_failed_check_model = [False]
 
 def check_proof (p, proof, use_rep = None):
 	checks = proof_checks (p, proof)
@@ -967,26 +963,10 @@ def check_proof_report_rec (p, restrs, hyps, proof, step_num, ctxt, inducts,
 		for group in groups:
 			rep = rep_graph.mk_graph_slice (p)
 			detail = [0]
-			(res, fail) = test_hyp_group (rep, group, detail)
+			(res, _) = test_hyp_group (rep, group, detail)
 			if not res:
 				printout ('    .. failed to prove this.')
 				printout ('      (failure kind: %r)' % detail[0])
-				if fail:
-					(fhyps, fhyp, fname) = fail
-					printout ('      failed check: %s'
-						% (fname, ))
-					printout ('      failed hyp: %r' % (fhyp, ))
-					if debug_failed_check_model[0]:
-						try:
-							m = {}
-							rep.test_hyp_imp (fhyps,
-								fhyp, model = m)
-							if m:
-								import debug
-								debug.trace_model (rep, m)
-								debug.trace_model_relations (rep, m)
-						except Exception, e:
-							printout ('      (model debug failed: %r)' % e)
 				return
 
 		printout ('    .. proven.')

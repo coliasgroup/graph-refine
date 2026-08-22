@@ -110,8 +110,6 @@ def find_split_limit (p, n, restrs, hyps, kind, bound = 51, must_find = True,
 	if bound == None:
 		trace ('No split limit found for %d (%s).' % (n, tag))
 		if must_find:
-			printout ('No %s split limit found for %d (%s)'
-				% (kind, n, p.node_tags[n], ))
 			assert not 'split limit found'
 	return bound
 
@@ -708,10 +706,6 @@ def find_split_loop (p, head, restrs, hyps, unfold_limit = 9,
 
 	if ind_fails:
 		trace ('Warning: inductive failures: %s' % ind_fails)
-	printout ('No split found for loop at %d (%s)'
-		% (head, p.node_tags[head], ))
-	for fail in ind_fails[:10]:
-		printout ('  inductive failure: %s' % (fail, ))
 	raise NoSplit ()
 
 def default_i_j_opts (unfold_limit = 9):
